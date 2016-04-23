@@ -6,6 +6,6 @@
   
 # This source code requires .NET 4.0 Framework to be installed on the target machine to be successfully compiled.
 
-# There is also attached compiled version of this library in the form of zip file, that is shipped with other required files, plus xml schema for VS IntelliSense.
+# There is also attached compiled version of this library in this repo in the form of zip file, that is shipped with other required files, plus xml schema for VS IntelliSense. Name of zip file: SoftwareDevelopment.Programming.CSharp.Utilities.zip
 
 # If you have any (negative/positive) feedback, do not hesitate to contact me @ contact@lukaszdabrowski.com
