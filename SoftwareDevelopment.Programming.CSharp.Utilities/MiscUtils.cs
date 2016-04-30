@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -217,6 +218,75 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
             return stringValue;
         }
+
+        /// <summary>
+        /// Replaces all occurrences of oldValue in inputString with newValue.
+        /// </summary>
+        /// <param name="inputString">input string</param>
+        /// <param name="oldValue">string to be replaced</param>
+        /// <param name="newValue">string to replace with</param>
+        /// <returns></returns>
+        public static string StringReplace(string inputString, string oldValue, string newValue)
+        {
+            return inputString.Replace(oldValue, newValue);
+        }
+
+        /// <summary>
+        /// Converts list of items of type T to array of items of type T.
+        /// </summary>
+        /// <typeparam name="T">type of list's item</typeparam>
+        /// <param name="list">list of items</param>
+        /// <param name="index">array index start position</param>
+        /// <returns>array of type T</returns>
+        public static T[] ConvertListToArray<T>(IList<T> list, int index = 0)
+        {
+            T[] array = new T[list.Count];
+
+            list.CopyTo(array, index);
+
+            return array;
+        }
+
+
+        /// <summary>
+        /// Converts array of items of type T to list of items of type T.
+        /// </summary>
+        /// <typeparam name="T">type of array's item</typeparam>
+        /// <param name="array">array of items</param>
+        /// <returns>list of items of type T</returns>
+        public static IList<T> ConvertArrayToList<T>(T[] array)
+        {
+            IList<T> list = new List<T>();
+
+            foreach (T item in array)
+            {
+                list.Add(item);
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// Converts IEnumerable collection of items of type T to array of items of type T.
+        /// </summary>
+        /// <typeparam name="T">type of collection item</typeparam>
+        /// <param name="collection">collection of items</param>
+        /// <returns>array of items of type T</returns>
+        public static T[] RetrieveArrayOfT<T>(ICollection collection)
+        {
+            IList<T> list = new List<T>();
+
+            foreach (T item in collection)
+            {
+                list.Add(item);
+            }
+
+            T[] array = new T[list.Count];
+            list.CopyTo(array, 0);
+
+            return array;
+        }
+
 
         private static void AddWellFormedXmlNodeInternal(XmlNode xmlNode, StringBuilder xmlNodesBuilder, string openingXmlTagFormat, string closingXmlTagFormat, string closeTagSign, int indentationLevel)
         {
