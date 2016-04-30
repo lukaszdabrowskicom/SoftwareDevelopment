@@ -68,7 +68,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
         /// <summary>
         /// Connect to Excel 2007 and later files with the xlsx file extension [Microsoft ACE OLEDB 12.0].
-        /// This option assumes that first row of the spreadsheet is a header row consisting of column names.
+        /// This option assumes that first row of the spreadsheet is a header row consisting of columns names.
         /// </summary>
         EXCEL_2007_AND_LATER_XLSX_CONNECTION_STRING_WITH_HEADER_ROW,
 
@@ -84,7 +84,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// Connect to Excel 2007 and later files with the xlsb file extension [Microsoft ACE OLEDB 12.0].
         /// That is the Office Open XML format saved in a binary format.
         /// The structure is similar but it is not saved in a text readable format as the xlsx files and can improve performance if the file contains lots of data.
-        /// This option assumes that first row of the spreadsheet is a header row consisting of column names.
+        /// This option assumes that first row of the spreadsheet is a header row consisting of columns names.
         /// </summary>
         EXCEL_2007_AND_LATER_XLSB_CONNECTION_STRING_WITH_HEADER_ROW,
 
@@ -100,7 +100,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
         /// <summary>
         /// Connect to Excel 2007 and later files with the xlsm file extension [Microsoft ACE OLEDB 12.0].
-        /// This option assumes that first row of the spreadsheet is a header row consisting of column names.
+        /// This option assumes that first row of the spreadsheet is a header row consisting of columns names.
         /// </summary>
         EXCEL_2007_AND_LATER_XLSM_CONNECTION_STRING_WITH_HEADER_ROW,
 
@@ -114,7 +114,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
         /// <summary>
         /// You can use this connection string to use the Microsoft Office 2007 OLEDB driver to connect to older 97-2003 Excel workbooks [Microsoft ACE OLEDB 12.0].
-        /// This option assumes that first row of the spreadsheet is a header row consisting of column names.
+        /// This option assumes that first row of the spreadsheet is a header row consisting of columns names.
         /// </summary>
         EXCEL_97_2003_XLS_CONNECTION_STRING_WITH_HEADER_ROW,
 
