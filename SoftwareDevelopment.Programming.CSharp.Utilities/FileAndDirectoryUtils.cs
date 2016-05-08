@@ -187,6 +187,19 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         }
 
         /// <summary>
+        /// Copies file to another location provided that file specified in the first parameter actually exists.
+        /// </summary>
+        /// <param name="fileName">full path to a file</param>
+        /// <param name="fullPath">location to copy the file to</param>
+        /// <param name="overrideExistingOne">override existing file</param>
+        /// <returns>void</returns>
+        public static void CopyFileIfExists(string fileName, string fullPath, bool overrideExistingOne)
+        {
+            if (File.Exists(fileName))
+                File.Copy(fileName, fullPath, overrideExistingOne);
+        }
+
+        /// <summary>
         /// Creates or overrides directory.
         /// </summary>
         /// <param name="fullPath">full path to a directory</param>
@@ -242,6 +255,51 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                 stream = null;
             }
 
+        }
+
+        /// <summary>
+        /// Returns directory name for provided path.
+        /// </summary>
+        /// <param name="path">directory path</param>
+        /// <returns></returns>
+        public static string GetDirectoryName(string path)
+        {
+            return Path.GetDirectoryName(path);
+        }
+
+        /// <summary>
+        /// Creates directory tree. i.e. dir1/dir2/dir3/dir4  etc.
+        /// </summary>
+        /// <param name="rootDirectory">directory to start with</param>
+        /// <param name="arrayOfDirectoryNames">array of directory names</param>
+        /// <param name="overrideExistingOnes">specyfies whether override existing directory tree</param>
+        /// <returns>full path to the last created directory</returns>
+        public static string CreateDirectoryTree(string rootDirectory, string[] arrayOfDirectoryNames, bool overrideExistingOnes = false)
+        {
+            string resultDirectoryTree = rootDirectory;
+
+            CreateOrOverrideExistingDirectory(resultDirectoryTree, overrideExistingOnes);
+            foreach (string dirName in arrayOfDirectoryNames)
+            {
+                resultDirectoryTree = ComposeFullPath(resultDirectoryTree, dirName);
+                CreateOrOverrideExistingDirectory(resultDirectoryTree, overrideExistingOnes);
+            }
+
+            return resultDirectoryTree;
+        }
+
+        /// <summary>
+        /// Creates directory tree. i.e. dir1/dir2/dir3/dir4  etc.
+        /// </summary>
+        /// <param name="rootDirectory">directory to start with</param>
+        /// <param name="listOfDirectoryNames">list of directory names</param>
+        /// <param name="overrideExistingOnes">specyfies whether override existing directory tree</param>
+        /// <returns>full path to the last created directory</returns>
+        public static string CreateDirectoryTree(string rootDirectory, List<string> listOfDirectoryNames, bool overrideExistingOnes = false)
+        {
+            string[] array = MiscUtils.ConvertListToArray<string>(listOfDirectoryNames);
+
+           return CreateDirectoryTree(rootDirectory, array, overrideExistingOnes);
         }
     }
 }

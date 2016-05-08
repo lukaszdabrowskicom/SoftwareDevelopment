@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Xml;
+
 
 namespace SoftwareDevelopment.Programming.CSharp.Utilities
 {
@@ -97,6 +99,32 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
             return path;
         }
+
+        /// <summary>
+        /// Replaces all occurences of 'oldStringToBeReplaced' param value with 'newStringToReplaceWith' param value in the input string.
+        /// </summary>
+        /// <param name="inputString">input string</param>
+        /// <param name="oldStringToBeReplaced">old string to be replaced</param>
+        /// <param name="newStringToReplaceWith">new string to replace with</param>
+        /// <returns></returns>
+        public static string Replace(string inputString, string oldStringToBeReplaced, string newStringToReplaceWith)
+        {
+            return inputString.Replace(oldStringToBeReplaced, newStringToReplaceWith);
+        }
+
+        /// <summary>
+        /// Converts separator separated input string into array of items.
+        /// </summary>
+        /// <param name="separatorSeparatedListOfItems">string consisting of items to be splitted</param>
+        /// <param name="separator">string items separator</param>
+        /// <returns></returns>
+        public static string[] GetArrayFromString(string separatorSeparatedListOfItems, char separator)
+        {
+            string[] result = separatorSeparatedListOfItems.Split(new char[] { separator });
+
+            return result;
+        }
+
         /// <summary>
         /// Removes spaces from string.
         /// </summary>
@@ -287,6 +315,48 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             return array;
         }
 
+        /// <summary>
+        /// Removes association with original DataSet object to which this array of DataTable objects belongs, allowing adding this array to new DataSet object.
+        /// </summary>
+        /// <param name="tables">array of DataTable objects</param>
+        /// <returns>array of DataTable objects</returns>
+        public static DataTable[] RemoveAssociationWithCurrentDataSet(DataTable[] tables)
+        {
+            if (tables.Length > 0)
+            {
+                DataSet tablesDataSet = tables[0].DataSet;
+
+                foreach (DataTable table in tables)
+                {
+                    tablesDataSet.Tables.Remove(table);
+                }
+            }
+
+            return tables;
+        }
+
+        /// <summary>
+        /// Converts False or True string literal to Boolean type.
+        /// </summary>
+        /// <param name="trueFalseStringValue">False or True string literal</param>
+        /// <returns>bool value of true or false</returns>
+        public static bool ConvertToBoolean(string trueFalseStringValue)
+        {
+            bool result;
+
+            string trueFalseStringValueInternal = trueFalseStringValue;
+            trueFalseStringValueInternal = trueFalseStringValueInternal.ToLower();
+            if (trueFalseStringValueInternal == "true")
+                trueFalseStringValueInternal = "T" + trueFalseStringValueInternal.Substring(1);
+            else if (trueFalseStringValueInternal == "false")
+                trueFalseStringValueInternal = "F" + trueFalseStringValueInternal.Substring(1);
+            else
+                throw ExceptionUtils.CreateException("This string value is not a valid Boolean string literal: '{0}'. Valid values are 'True' or 'False' and their variations like 'tRUE, TrUe, FaLSE', etc.", trueFalseStringValue);
+
+            result = Boolean.Parse(trueFalseStringValueInternal);
+
+            return result;
+        }
 
         private static void AddWellFormedXmlNodeInternal(XmlNode xmlNode, StringBuilder xmlNodesBuilder, string openingXmlTagFormat, string closingXmlTagFormat, string closeTagSign, int indentationLevel)
         {

@@ -149,6 +149,26 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             return types;
         }
 
+        /// <summary>
+        /// Returns true or false depending on whether DataTableCollection contains any rows.
+        /// </summary>
+        /// <param name="dataTableCollection">collection of DataTable objects</param>
+        /// <returns>bool</returns>
+        public static bool CheckIfAnyExcelWorksheetContainsData(DataTableCollection dataTableCollection)
+        {
+            bool dataTableHasData = false;
+
+            foreach (DataTable item in dataTableCollection)
+            {
+                if (item.Rows.Count > 0)
+                {
+                    dataTableHasData = true;
+                    break;
+                }
+            }
+
+            return dataTableHasData;
+        }
 
         private static string EXCEL_STANDARD_CONNECTION_STRING = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=$1;Extended Properties =\"Excel 8.0;HDR=YES;IMEX=1\";";
 
