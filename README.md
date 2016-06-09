@@ -1,4 +1,11 @@
 # Dabrowski Software Development
+- NEW:
+ modifications:
+ - [MiscUtils] new generic methods: TakeFirstCollectionItems, TakeLastCollectionItems, TakeCollectionItems <strong>UPLOADED [NEW]</strong>
+   /* returns first-, last-, or range- number of items from a collection */
+ - [ExcelUtils] new method: LoadDataFromTextFile <strong>UPLOADED [NEW]</strong>
+   /* loads data from text CSV-like file into DataTable */
+
 
 # This is free C# library consisting of various util classes for common day-to-day operations.
 
@@ -11,3 +18,4 @@
 # If you have any (negative/positive) feedback, do not hesitate to contact me @ contact@lukaszdabrowski.com
 
 # In order to use Excel util class, please download and install drivers from this Microsoft site https://www.microsoft.com/en-us/download/details.aspx?id=13255 in case you have no Microsoft Office product installed.
+
