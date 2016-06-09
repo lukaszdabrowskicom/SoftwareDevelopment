@@ -2,9 +2,9 @@
 - NEW:
  modifications:
  - [MiscUtils] new generic methods: TakeFirstCollectionItems, TakeLastCollectionItems, TakeCollectionItems <strong>UPLOADED [NEW]</strong>
- /* returns first-, last-, or range- number of items from a collection */
+ - /* returns first-, last-, or range- number of items from a collection */
  - [ExcelUtils] new method: LoadDataFromTextFile <strong>UPLOADED [NEW]</strong>
- /* loads data from text CSV-like file into DataTable */
+ - /* loads data from text CSV-like file into DataTable */
 
 
 # This is free C# library consisting of various util classes for common day-to-day operations.
