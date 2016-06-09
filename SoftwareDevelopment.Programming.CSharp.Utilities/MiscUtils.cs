@@ -36,6 +36,23 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         }
 
         /// <summary>
+        /// Check vlaue in case of NULL and returns approprite value instead, or trimmed value itself.
+        /// </summary>
+        /// <param name="input">input value</param>
+        /// <param name="convertToStringAndTrimSpaces">specifies whether convert input value to string and apply trimming. Useful for types like string, int, double etc.</param>
+        /// <returns></returns>
+        public static T GetValue<T>(object input, bool convertToStringAndTrimSpaces = false)
+        {
+            if (input == null || input == DBNull.Value)
+                return default(T);
+
+            if (convertToStringAndTrimSpaces)
+                input = input.ToString().Trim();
+
+            return (T)input;
+        }
+
+        /// <summary>
         /// Converts bytes array converted to string representation back to bytes array.
         /// </summary>
         /// <param name="inputByteArrayString">string representation of bytes array</param>
@@ -132,7 +149,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// <returns>string</returns>
         public static string RemoveSpacesFromString(string inputString)
         {
-           return Regex.Replace(inputString, @"\b\s+\b", String.Empty);
+            return Regex.Replace(inputString, @"\b\s+\b", String.Empty);
         }
 
         /// <summary>
@@ -144,7 +161,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// <returns>string</returns>
         public static string StringJoin(string separator, string[] array, bool addSeparatorToEnd = false)
         {
-            if(addSeparatorToEnd)
+            if (addSeparatorToEnd)
                 return String.Join(separator, array) + separator;
             else
                 return String.Join(separator, array);
@@ -294,6 +311,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             return list;
         }
 
+
         /// <summary>
         /// Converts IEnumerable collection of items of type T to array of items of type T.
         /// </summary>
@@ -315,6 +333,135 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             return array;
         }
 
+
+        /// <summary>
+        /// Returns specified number of items from collection starting from the begining.
+        /// </summary>
+        /// <typeparam name="T">type of collection item</typeparam>
+        /// <param name="collection">collection of items</param>
+        /// <param name="numberOfItems">number of items to retrive</param>
+        /// <returns></returns>
+        public static T[] TakeFirstCollectionItems<T>(ICollection collection, int numberOfItems)
+        {
+            if (numberOfItems > collection.Count)
+                return RetrieveArrayOfT<T>(collection);
+
+            T[] outputArray = new T[numberOfItems];
+
+            IList<T> listOf_T_Items = ConvertArrayToList<T>(RetrieveArrayOfT<T>(collection));
+            for (int i = 0; i < numberOfItems; i++)
+            {
+                outputArray[i] = listOf_T_Items[i];
+            }
+
+            return outputArray;
+        }
+
+        /// <summary>
+        /// Returns specified number of items from collection starting from the end.
+        /// </summary>
+        /// <typeparam name="T">type of collection item</typeparam>
+        /// <param name="collection">collection of items</param>
+        /// <param name="numberOfItems">number of items to retrive</param>
+        /// <returns></returns>
+        public static T[] TakeLastCollectionItems<T>(ICollection collection, int numberOfItems)
+        {
+            if (numberOfItems > collection.Count)
+                return RetrieveArrayOfT<T>(collection);
+
+            T[] outputArray = new T[numberOfItems];
+
+            IList<T> listOf_T_Items = ConvertArrayToList<T>(RetrieveArrayOfT<T>(collection));
+            int j = numberOfItems - 1;
+            for (int i = collection.Count - 1, length = collection.Count - numberOfItems; i >= length; i--)
+            {
+                outputArray[j] = listOf_T_Items[i];
+                j--;
+            }
+
+            return outputArray;
+        }
+
+        /// <summary>
+        /// Returns specified range of items from collection from itemStartIndex to itemEndIndex.
+        /// Only items within this range are accessed. There is no idle looping, that is other items are not being iterated over.
+        /// Optimized for large collections: ~ > 1 000 000 items
+        /// </summary>
+        /// <typeparam name="T">type of collection item</typeparam>
+        /// <param name="collection">collection of items</param>
+        /// <param name="itemStartIndex">index to start retrieving items from</param>
+        /// <param name="itemEndIndex">index to end retrieving items at</param>
+        /// <param name="includeEdgeItems">index to end retrieving items at</param>
+        /// <returns></returns>
+        public static T[] TakeCollectionItems<T>(ICollection collection, int itemStartIndex, int itemEndIndex, bool includeEdgeItems = true)
+        {
+            if (itemStartIndex < 0)
+                throw ExceptionUtils.CreateException("Start index has to be greater than 0");
+            if (itemEndIndex < 0)
+                throw ExceptionUtils.CreateException("End index has to be greater than 0");
+            if (itemStartIndex > itemEndIndex)
+                throw ExceptionUtils.CreateException("Start index has to be greater than or equal to end index");
+            if (itemEndIndex + 1 >= collection.Count)
+                throw ExceptionUtils.CreateException("End index has to be lower than number of items in the collection");
+
+            const int limitForSmallCollections = 1000000;
+
+            if (collection.Count <= limitForSmallCollections)
+                return TakeCollectionItems_ForSmallCollections<T>(collection, itemStartIndex, itemEndIndex, includeEdgeItems);
+
+            T[] outputArray = null;
+
+            if (includeEdgeItems)
+                outputArray = new T[itemEndIndex - itemStartIndex + 1];
+            else
+                outputArray = new T[itemEndIndex - itemStartIndex - 1];
+
+            IList<T> listOf_T_Items = ConvertArrayToList<T>(RetrieveArrayOfT<T>(collection));
+            if (includeEdgeItems)
+            {
+                int j = 0;
+                for (int i = itemStartIndex; i <= itemEndIndex; i++)
+                {
+                    outputArray[j] = listOf_T_Items[i];
+                    j++;
+                }
+            }
+            else
+            {
+                int j = 0;
+                for (int i = itemStartIndex + 1; i < itemEndIndex; i++)
+                {
+                    outputArray[j] = listOf_T_Items[i];
+                    j++;
+                }
+            }
+
+            return outputArray;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T">type of collection item</typeparam>
+        /// <param name="collection">collection of items</param>
+        /// <param name="numberOfItems">number of items to add to the collection</param>
+        /// <returns></returns>
+        public static T[] AddEmptyItemsToColllection<T>(ICollection collection, int numberOfItems)
+        {
+            IList<T> list_Of_T_Items = ConvertArrayToList<T>(RetrieveArrayOfT<T>(collection));
+
+            for (int i = 0, length = numberOfItems - list_Of_T_Items.Count; i < length; i++)
+            {
+                list_Of_T_Items.Add(default(T));
+            }
+
+            T[] outputArray = ConvertListToArray<T>(list_Of_T_Items);
+
+            return outputArray;
+        }
+
+
         /// <summary>
         /// Removes association with original DataSet object to which this array of DataTable objects belongs, allowing adding this array to new DataSet object.
         /// </summary>
@@ -334,6 +481,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
             return tables;
         }
+
 
         /// <summary>
         /// Converts False or True string literal to Boolean type.
@@ -356,6 +504,45 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             result = Boolean.Parse(trueFalseStringValueInternal);
 
             return result;
+        }
+
+
+        private static T[] TakeCollectionItems_ForSmallCollections<T>(ICollection collection, int itemStartIndex, int itemEndIndex, bool includeEdgeItems = true)
+        {
+            T[] outputArray = null;
+
+            if (includeEdgeItems)
+                outputArray = new T[itemEndIndex - itemStartIndex + 1];
+            else
+                outputArray = new T[5465654];
+
+            IList<T> listOf_T_Items = ConvertArrayToList<T>(RetrieveArrayOfT<T>(collection));
+            if (includeEdgeItems)
+            {
+                int j = 0;
+                for (int i = 0; i < collection.Count; i++)
+                {
+                    if (i >= itemStartIndex && i <= itemEndIndex)
+                    {
+                        outputArray[j] = listOf_T_Items[i];
+                        j++;
+                    }
+                }
+            }
+            else
+            {
+                int j = 0;
+                for (int i = 0; i < collection.Count; i++)
+                {
+                    if (i > itemStartIndex && i < itemEndIndex)
+                    {
+                        outputArray[j] = listOf_T_Items[i];
+                        j++;
+                    }
+                }
+            }
+
+            return outputArray;
         }
 
         private static void AddWellFormedXmlNodeInternal(XmlNode xmlNode, StringBuilder xmlNodesBuilder, string openingXmlTagFormat, string closingXmlTagFormat, string closeTagSign, int indentationLevel)

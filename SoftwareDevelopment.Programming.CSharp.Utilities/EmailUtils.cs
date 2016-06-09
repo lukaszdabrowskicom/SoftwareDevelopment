@@ -32,7 +32,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// port
         /// </summary>
         public static int PORT;
-        
+
         /// <summary>
         /// connection timeout
         /// </summary>
@@ -175,7 +175,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
             if (recipients.Length != recipientsAliases.Length)
             {
-               throw ExceptionUtils.CreateException("Number of recipients and recipientsAliases must match.");
+                throw ExceptionUtils.CreateException("Number of recipients and recipientsAliases must match.");
             }
 
             for (int i = 0, length = recipients.Length; i < length; i++)
@@ -290,7 +290,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                 ApplyCoreTranslationInternal(firstNamePairs, firstName_lastName_Array[0].Trim(), old_new_letter_separator, keepSideBySideDoubleLetters, ref translatedAliasCharArray);
                 AddSpaceCharToArray(ref translatedAliasCharArray);
                 AddCharsToArray(firstName_lastName_Array[1].Trim().ToCharArray(), keepSideBySideDoubleLetters, ref translatedAliasCharArray);
-                
+
             }
             else if (applyTranslationToLastName)
             {
@@ -298,7 +298,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                 AddSpaceCharToArray(ref translatedAliasCharArray);
                 ApplyCoreTranslationInternal(lastNamePairs, firstName_lastName_Array[1].Trim(), old_new_letter_separator, keepSideBySideDoubleLetters, ref translatedAliasCharArray);
             }
-            
+
             return MiscUtils.StringJoin(String.Empty, translatedAliasCharArray);
         }
 
@@ -315,7 +315,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
         private static void AddCharsToArray(char[] inputCharsArray, bool keepSideBySideDoubleLetters, ref IList<char> charsList)
         {
-            ProcessDoubleLetters(new string(inputCharsArray), keepSideBySideDoubleLetters,  ref charsList);
+            ProcessDoubleLetters(new string(inputCharsArray), keepSideBySideDoubleLetters, ref charsList);
         }
 
         private static void AddSpaceCharToArray(ref IList<char> charsList)

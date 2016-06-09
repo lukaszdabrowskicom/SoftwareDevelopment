@@ -112,17 +112,67 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         }
 
         /// <summary>
+        /// Loads content of a text file with CSV-like format into DataTable object.
+        /// </summary>
+        /// <param name="fullPathToFile">full path to table</param>
+        /// <param name="listOfRowsNotComplyingWithNumberOfColumns">returns list of lines not complying with number of columns</param>
+        /// <param name="separator">CSV-like format separator</param>
+        /// <param name="firstLineIsTableHeader">specifies whether first line is a columns header</param>
+        /// <param name="applyRowTrimmingOrExtendingInsteadOfLogging">specifies whether add empty values for row with missing columns, or cut out row columns that overflow last header column</param>
+        /// <param name="userProvidedNumberOfTableColumns">user provided number of columns in case data file is missing columns header</param>
+        /// <param name="userProvidedTableColumnPrefix">user provided table column prefix in case text file is missing columns header</param>
+        /// <returns></returns>
+        public static DataTable LoadDataFromTextFile(
+                                                      string fullPathToFile, out List<string> listOfRowsNotComplyingWithNumberOfColumns,
+                                                      char separator = ',',
+                                                      bool firstLineIsTableHeader = true, bool applyRowTrimmingOrExtendingInsteadOfLogging = true,
+                                                      int userProvidedNumberOfTableColumns = -1,
+                                                      string userProvidedTableColumnPrefix = "Column_"
+                                                    )
+        {
+            DataTable textFileDataTable = new DataTable();
+
+            int tableHeaderColumnsCount;
+            listOfRowsNotComplyingWithNumberOfColumns = new List<string>();
+
+            string[] readLines = File.ReadAllLines(fullPathToFile);
+            if (readLines.Length > 0)
+            {
+                if (firstLineIsTableHeader)
+                {
+                    AddTableHeader(readLines[0], textFileDataTable, out tableHeaderColumnsCount);
+                    for (int i = 1, length = readLines.Length; i < length; i++)
+                    {
+
+                        ProcessEachLine(readLines[i], textFileDataTable, tableHeaderColumnsCount, listOfRowsNotComplyingWithNumberOfColumns, applyRowTrimmingOrExtendingInsteadOfLogging, separator);
+                    }
+                }
+                else
+                {
+                    CreateTableHeader(textFileDataTable, userProvidedNumberOfTableColumns, userProvidedTableColumnPrefix);
+                    for (int i = 0, length = readLines.Length; i < length; i++)
+                    {
+
+                        ProcessEachLine(readLines[i], textFileDataTable, userProvidedNumberOfTableColumns, listOfRowsNotComplyingWithNumberOfColumns, applyRowTrimmingOrExtendingInsteadOfLogging, separator);
+                    }
+                }
+            }
+
+            return textFileDataTable;
+        }
+
+        /// <summary>
         /// Retrieves array of columns names.
         /// </summary>
         /// <param name="dataTable">DataTable to retrieve data from</param>
         /// <returns>array of strings</returns>
         public static string[] RetrieveDataTableColumnsNamesArray(DataTable dataTable)
         {
-          DataColumn[] arrayOfDataColumns = MiscUtils.RetrieveArrayOfT<DataColumn>(dataTable.Columns);
+            DataColumn[] arrayOfDataColumns = MiscUtils.RetrieveArrayOfT<DataColumn>(dataTable.Columns);
 
             string[] names = new string[arrayOfDataColumns.Length];
 
-            for (int i = 0, length = names.Length ; i < length; i++)
+            for (int i = 0, length = names.Length; i < length; i++)
             {
                 names[i] = arrayOfDataColumns[i].ColumnName;
             }
@@ -168,6 +218,73 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             }
 
             return dataTableHasData;
+        }
+
+
+        private static void AddTableHeader(string line, DataTable resultDataTable, out int numberOfColumns)
+        {
+            DataColumn[] columnsHeader = CreateDataColumnHeader(line);
+            resultDataTable.Columns.AddRange(columnsHeader);
+
+            numberOfColumns = columnsHeader.Length;
+        }
+
+        private static void CreateTableHeader(DataTable resultDataTable, int userProvidedNumberOfTableColumns, string userProvidedTableColumnPrefix)
+        {
+            for (int i = 0; i < userProvidedNumberOfTableColumns; i++)
+            {
+                resultDataTable.Columns.Add(new DataColumn(userProvidedTableColumnPrefix + i));
+            }
+        }
+
+        private static void ProcessEachLine(string line, DataTable resultDataTable, int numberOfColums, List<string> listOfRowsNotComplayingWithNumberOfColumns, bool applyRowTrimmingOrExtendingInsteadOfLogging, char separator)
+        {
+            CreateDataRow(line, resultDataTable, numberOfColums, listOfRowsNotComplayingWithNumberOfColumns, applyRowTrimmingOrExtendingInsteadOfLogging, separator);
+        }
+
+        private static DataColumn[] CreateDataColumnHeader(string line)
+        {
+            List<DataColumn> columnList = new List<DataColumn>();
+
+            string[] columns = line.Split(new char[] { ',' });
+            foreach (string column in columns)
+            {
+                columnList.Add(new DataColumn(column));
+            }
+
+            DataColumn[] columnArray = MiscUtils.ConvertListToArray<DataColumn>(columnList);
+
+            return columnArray;
+        }
+
+        private static void CreateDataRow(string line, DataTable resultDataTable, int numberOfColumns, List<string> listOfRowsNotComplayingWithNumberOfColumns, bool applyRowTrimmingOrExtendingInsteadOfLogging, char separator)
+        {
+            string[] columns = line.Split(new[] { separator });
+
+            if (applyRowTrimmingOrExtendingInsteadOfLogging)
+            {
+                if (columns.Length > numberOfColumns)
+                    columns = MiscUtils.TakeFirstCollectionItems<string>(columns, numberOfColumns);
+                else if (columns.Length < numberOfColumns)
+                    columns = MiscUtils.AddEmptyItemsToColllection<string>(columns, numberOfColumns);
+
+                DataRow newRow = resultDataTable.NewRow();
+                newRow.ItemArray = columns;
+                resultDataTable.Rows.Add(newRow);
+            }
+            else
+            {
+                if (columns.Length == numberOfColumns)
+                {
+                    DataRow newRow = resultDataTable.NewRow();
+                    newRow.ItemArray = columns;
+                    resultDataTable.Rows.Add(newRow);
+                }
+                else
+                {
+                    listOfRowsNotComplayingWithNumberOfColumns.Add(line);
+                }
+            }
         }
 
         private static string EXCEL_STANDARD_CONNECTION_STRING = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=$1;Extended Properties =\"Excel 8.0;HDR=YES;IMEX=1\";";

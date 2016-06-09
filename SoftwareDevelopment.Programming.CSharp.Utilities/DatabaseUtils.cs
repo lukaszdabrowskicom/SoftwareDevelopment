@@ -1,22 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
 using System.Text.RegularExpressions;
 
 using MySql.Data.MySqlClient;
-using SoftwareDevelopment.Programming.CSharp.Utilities.DataObjects;
 using System.Reflection;
-
-using SoftwareDevelopment.Programming.CSharp.Utilities;
 
 namespace SoftwareDevelopment.Programming.CSharp.Utilities
 {
     /// <summary>
     /// Util class for common ADO .NET operations.
     /// </summary>
-    [Obfuscation(ApplyToMembers = true, Exclude = false, StripAfterObfuscation = true)] 
+    [Obfuscation(ApplyToMembers = true, Exclude = false, StripAfterObfuscation = true)]
     public static class DatabaseUtils
     {
 
@@ -46,7 +42,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             if ((connection.State & ConnectionState.Open) != ConnectionState.Open)
             {
                 connection.Open();
-                if(logOpendConnection)
+                if (logOpendConnection)
                     LogUtils.Log("established and opened", true);
             }
         }
@@ -162,7 +158,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
             xmlBuilder.AppendFormat("DECLARE {0} AS XML = ''", xmlVariableNameToStoreXmlQuery).AppendLine();
             xmlBuilder.AppendFormat("SET {0} = ({1})", xmlVariableNameToStoreXmlQuery, sqlQuery).AppendLine();
-            if(generateSelectQuery)
+            if (generateSelectQuery)
                 xmlBuilder.AppendFormat("SELECT {0} AS {1}", xmlVariableNameToStoreXmlQuery, xmlVariableNameToStoreXmlQuery.Substring(1)).AppendLine();
 
             return xmlBuilder.ToString();
@@ -180,7 +176,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         public static string CreateSQLInsertQuery(string tableName, string[] columnArray, string[][] arrayOfRowDataArray, Type[] typeArray, OperationTypeInsertType operationTypeInsertType = OperationTypeInsertType.INSERT_VALUES)
         {
             //perform initial validation
-            ThrowInvalidOperationExceptionIfNumberOfColumnsAndTypesMismatch(columnArray, typeArray, "columns" , "types");
+            ThrowInvalidOperationExceptionIfNumberOfColumnsAndTypesMismatch(columnArray, typeArray, "columns", "types");
             //perform validation for input data
             foreach (string[] rowDataArray in arrayOfRowDataArray)
             {
@@ -212,7 +208,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                 //create INSERT query body
                 for (int i = 0, length = arrayOfRowDataArray.Length; i < length; i++)
                 {
-                    format = CreateStringInternal(OperationTypeEnum.INSERT, tableName, false, arrayOfRowDataArray[i], typeArray, null, null, OperationTypeInsertType.SELECT_UNION, i == length-1);
+                    format = CreateStringInternal(OperationTypeEnum.INSERT, tableName, false, arrayOfRowDataArray[i], typeArray, null, null, OperationTypeInsertType.SELECT_UNION, i == length - 1);
                     CreateSqlQueryInternal(queryBuilder, format);
                 }
             }
@@ -310,7 +306,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
             return queryBuilder.ToString();
         }
-        
+
 
         /// <summary>
         /// Creates SqlCommand object.
@@ -374,13 +370,13 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                 {
                     for (int j = 0, length2 = arrayOfArraysOfItems[i].Length; j < length2; j++)
                     {
-                        if(j == length2 - 1)
-                         parameterValueBuilder.AppendFormat("{0}{1}{2}", arrayItemSeparator, arrayOfArraysOfItems[i][j], arrayItemSeparator);
+                        if (j == length2 - 1)
+                            parameterValueBuilder.AppendFormat("{0}{1}{2}", arrayItemSeparator, arrayOfArraysOfItems[i][j], arrayItemSeparator);
                         else
-                         parameterValueBuilder.AppendFormat("{0}{1}", arrayItemSeparator, arrayOfArraysOfItems[i][j]);
+                            parameterValueBuilder.AppendFormat("{0}{1}", arrayItemSeparator, arrayOfArraysOfItems[i][j]);
                     }
                 }
-                if(i != length - 1)
+                if (i != length - 1)
                     parameterValueBuilder.Append(arraySeparator);
             }
             parameterValue = parameterValueBuilder.ToString();
@@ -393,7 +389,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         private const string SQL_IS_NULL_CLAUSE = "IS NULL";
         private const string SQL_IS_NOT_NULL_CLAUSE = "IS NOT NULL";
 
-        private static void ThrowInvalidOperationExceptionIfNumberOfColumnsAndTypesMismatch(string[] columnArray, Type[] typesArray, string  message1, string message2)
+        private static void ThrowInvalidOperationExceptionIfNumberOfColumnsAndTypesMismatch(string[] columnArray, Type[] typesArray, string message1, string message2)
         {
             string[] typeToStringArray = ConvertToStringRepresentationInternal(typesArray);
             ThrowInvalidOperationExceptionIfNumberOfColumnsAndTypesMismatch(columnArray, typeToStringArray, message1, message2);
@@ -414,14 +410,14 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             {
                 if (!ValidateColumnValueInternal(rowDataArray[i], operationType, out valueIsReservedOne, out valueIsString))
                     throw ExceptionUtils.CreateException("Value '{0}' for column '{1}' failed to pass validation.", rowDataArray[i], columnArray[i]);
-                    //_columnsInfo.Add(
-                    //                new DataHolder {
-                    //                    ColumnName = columnArray[i],
-                    //                    ColumnValue = rowDataArray[i],
-                    //                    ColumnValueIsReservedOne = valueIsReservedOne,
-                    //                    ColumnValueIsString = valueIsString
-                    //                }
-                    //               );
+                //_columnsInfo.Add(
+                //                new DataHolder {
+                //                    ColumnName = columnArray[i],
+                //                    ColumnValue = rowDataArray[i],
+                //                    ColumnValueIsReservedOne = valueIsReservedOne,
+                //                    ColumnValueIsString = valueIsString
+                //                }
+                //               );
             }
         }
 
@@ -537,7 +533,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                 }
                 else if (operationType == OperationTypeEnum.DELETE)
                 {
-                    formatBuilder.Append(operationType.ToString() + space + fromClause + space + tableName).AppendLine().Append(whereClause + space); 
+                    formatBuilder.Append(operationType.ToString() + space + fromClause + space + tableName).AppendLine().Append(whereClause + space);
                 }
                 else if (operationType == OperationTypeEnum.UPDATE)
                 {
@@ -562,15 +558,15 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                         }
                         formatBuilder.AppendLine(closingBrace);
                     }
-                    
-                    else if(operationTypeInsertType == OperationTypeInsertType.SELECT_UNION)
+
+                    else if (operationTypeInsertType == OperationTypeInsertType.SELECT_UNION)
                     {
-                      formatBuilder.Append(selectClause + space);
-                      for (int i = 0, length = dataArray.Length; i < length; i++)
-                      {
-                        string quantifier = GetQuantifierForType(typesArray[i]);
-                        formatBuilder.Append(quantifier + dataArray[i] + quantifier).Append(i == length - 1 ? String.Empty : comma);
-                      }
+                        formatBuilder.Append(selectClause + space);
+                        for (int i = 0, length = dataArray.Length; i < length; i++)
+                        {
+                            string quantifier = GetQuantifierForType(typesArray[i]);
+                            formatBuilder.Append(quantifier + dataArray[i] + quantifier).Append(i == length - 1 ? String.Empty : comma);
+                        }
                         if (!lastLoopIterationWasMet)
                         {
                             formatBuilder.AppendLine().AppendLine();
@@ -592,7 +588,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                 }
                 else if (operationType == OperationTypeEnum.UPDATE)
                 {
-                    if(sqlAndOrOperatorsArray != null)
+                    if (sqlAndOrOperatorsArray != null)
                     {
                         for (int i = 0, length = dataArray.Length; i < length; i++)
                         {
@@ -631,7 +627,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         private static string GetQuantifierForType(Type type)
         {
             string apostrophe = "'";
-            string emptyString = String.Empty; 
+            string emptyString = String.Empty;
             NotSupportedException nse = new NotSupportedException("This type for column value is not supported yet");
 
             switch (Type.GetTypeCode(type))
