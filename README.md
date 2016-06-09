@@ -1,6 +1,7 @@
 # Dabrowski Software Development
 - NEW:
  - [MiscUtils] new generic methods: TakeFirstCollectionItems, TakeLastCollectionItems, TakeCollectionItems <strong>UPLOADED [NEW]</strong> /* returns first-, last-, or range- number of items from a collection */
+ - [MiscUtils] AddEmptyItemsToColllection <strong>UPLOADED [NEW]</strong> /* adds collection item default value to comply with CSV-like format */
  - [ExcelUtils] new method: LoadDataFromTextFile <strong>UPLOADED [NEW]</strong> /* loads data from text CSV-like file into DataTable */
 
 
