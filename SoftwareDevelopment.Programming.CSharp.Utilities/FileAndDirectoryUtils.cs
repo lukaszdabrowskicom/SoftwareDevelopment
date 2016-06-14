@@ -200,6 +200,29 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         }
 
         /// <summary>
+        /// Creates or overrides file.
+        /// </summary>
+        /// <param name="fullPath">full path to a file</param>
+        /// <param name="overrideExistingOne">whether to override existing file or not</param>
+        /// <returns>void</returns>
+        public static void CreateOrOverrideExistingFile(string fullPath, bool overrideExistingOne)
+        {
+            bool exists = File.Exists(fullPath);
+
+            if (overrideExistingOne && exists)
+            {
+                File.Delete(fullPath);
+                exists = false;
+            }
+
+            if (!exists)
+            {
+                FileStream fileStream = File.Create(fullPath);
+                fileStream.Close();
+            }
+        }
+
+        /// <summary>
         /// Creates or overrides directory.
         /// </summary>
         /// <param name="fullPath">full path to a directory</param>
