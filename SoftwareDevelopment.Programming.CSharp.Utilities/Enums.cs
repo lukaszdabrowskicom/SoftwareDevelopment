@@ -132,7 +132,28 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// </summary>
         EXCEL_2007_AND_LATER_XLSX_TEXT_CONNECTION_STRING
 
+    }
 
+    /// <summary>
+    /// Type of log operation.
+    /// </summary>
+    [Obfuscation(ApplyToMembers = true, Exclude = false, StripAfterObfuscation = true)]
+    public enum LogOperationTypeEnum
+    {
+        /// <summary>
+        /// Represents logging info message
+        /// </summary>
+        INFO,
+
+        /// <summary>
+        /// Represents logging warning message
+        /// </summary>
+        WARNING,
+
+        /// <summary>
+        /// Represents logging error message
+        /// </summary>
+        ERROR
     }
 
 }

@@ -1,6 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace SoftwareDevelopment.Programming.CSharp.Utilities
@@ -23,6 +28,10 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// Converts DateTime object to string representation, e.g. 2016-03-24 18:41:00:234
         /// </summary>
         public const string DATETIME_PATTERN_FOR_VERSIONING = "yyyy-MM-dd-HH-mm-sss-fff";
+        /// <summary>
+        /// Converts DateTime object to string representation, e.g. 2016-03-24 18:41:00:234
+        /// </summary>
+        public const string DATETIME_PATTERN_FOR_LOGGING = "yyyy-MM-dd HH:mm:sss:fff";
 
         private static DateTime _startDate = DateTime.MinValue;
 		private static DateTime _endDate = DateTime.MinValue;
@@ -33,6 +42,24 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         private static string _textFileLoggerStorage = String.Empty;
         private static bool _redirectToTextFileLogger = false;
 
+        private static SqlConnection _databaseConnection = null;
+        private static int _commandTimeout = -1;
+        private static string _databaseTableNameLoggerStorage = String.Empty;
+        private static bool _redirectToDatabaseLogger = false;
+
+        private static bool _applySystemLogging = false;
+
+
+        /// <summary>
+        /// Applies system logging, [full date and time]  [type of logging] [full path to method]: user logging goes here.
+        /// Otherwise user custom logging is applied.
+        /// </summary>
+        /// <param name="apply">whether to apply system logging or not</param>
+        /// <returns>void</returns>
+        public static void ApplySystemLogging(bool apply)
+        {
+            _applySystemLogging = apply;
+        }
 
         /// <summary>
         /// Redirects all logging output to custom location making it default logging output for the whole of the running program.
@@ -78,10 +105,41 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
                 _textFileLoggerStorage = tempFileName + "." + filePart[1];
                 FileAndDirectoryUtils.CreateOrOverrideExistingFile(_textFileLoggerStorage, false);
-                _redirectToTextFileLogger = redirect;
             }
-            else
-                _redirectToTextFileLogger = redirect;
+            _redirectToTextFileLogger = redirect;
+        }
+
+        /// <summary>
+        /// Redirects all logging output to database table making it default or one of the logging outputs for the whole of the running program.
+        /// </summary>
+        /// <param name="connectionString">connection string to database</param>
+        /// <param name="loggerTableName">database table name</param>
+        /// <param name="commandTimeout">timeout for operation completion</param>
+        /// <param name="redirect">whether to redirect logging output to database or not</param>
+        /// <returns>void</returns>
+        public static void RedirectToDatabaseLogger(string connectionString, string loggerTableName, int commandTimeout, bool redirect)
+        {
+            if (redirect)
+            {
+                if (String.IsNullOrEmpty(connectionString))
+                    throw ExceptionUtils.CreateException("Connection string is null or empty. Provide valid connection string instead.");
+
+                if (String.IsNullOrEmpty(loggerTableName))
+                    throw ExceptionUtils.CreateException("Table name for storing log data is null or empty. Provide valid table name instead.");
+
+                _databaseConnection = DatabaseUtils.CreateAndOptionallyOpenConnection(connectionString, true);
+
+               string validationMessage;
+               bool validationPassed = ValidateLoggerTableSchema(loggerTableName, commandTimeout, out validationMessage);
+               if (!validationPassed)
+               {
+                  DatabaseUtils.CloseSqlServerDatabaseConnection(ref _databaseConnection);
+                  throw ExceptionUtils.CreateException("Invalid table schema: '{0}' in log table called '{1}'", validationMessage, loggerTableName);
+               }
+            }
+            _commandTimeout = commandTimeout;
+            _databaseTableNameLoggerStorage = loggerTableName;
+            _redirectToDatabaseLogger = redirect;
         }
 
         /// <summary>
@@ -133,105 +191,139 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
 
         /// <summary>
-        /// Logs start time of the operation.
+        /// Logs start time of the operation with logging options.
+        /// Logging options will be applied if system logging is active. Otherwise user custom logging takes place.
+        /// You can activate system logging with ApplySystemLogging(bool apply) method.
+        /// <param name="logOperationType">specifies type of operation</param>
+        /// <param name="includeInvocationTime">specifies whether to include timestamp</param>
         /// </summary>
-        public static void LogStartTime()
+        public static void LogStartTime(LogOperationTypeEnum logOperationType = LogOperationTypeEnum.INFO, bool includeInvocationTime = true)
 		{
 			_startDate = DateTime.Now;
-			Log("Service started at: {0}", true, _startDate.ToString(DATETIME_PATTERN));
+			Log("Service started at: {0}", true, logOperationType, includeInvocationTime, _startDate.ToString(DATETIME_PATTERN));
 		}
 
         /// <summary>
-        /// Logs end time of the operation.
+        /// Logs end time of the operation with logging options.
+        /// Logging options will be applied if system logging is active. Otherwise user custom logging takes place.
+        /// You can activate system logging with ApplySystemLogging(bool apply) method.
+        /// <param name="logOperationType">specifies type of operation</param>
+        /// <param name="includeInvocationTime">specifies whether to include timestamp</param>
         /// </summary>
-		public static void LogEndTime()
+        public static void LogEndTime(LogOperationTypeEnum logOperationType = LogOperationTypeEnum.INFO, bool includeInvocationTime = true)
 		{
 			_endDate = DateTime.Now;
-            Log("Service ended at: {0}", true, _endDate.ToString(DATETIME_PATTERN));
-            Log("Operation took {0} seconds", true, _endDate.Subtract(_startDate).TotalSeconds.ToString());
+            Log("Service ended at: {0}", true, logOperationType, includeInvocationTime, _endDate.ToString(DATETIME_PATTERN));
+            Log("Operation took {0} seconds", true, logOperationType, includeInvocationTime, _endDate.Subtract(_startDate).TotalSeconds.ToString());
         }
 
         /// <summary>
         /// Logs message to the default output.
+        /// Logging options will be applied if system logging is active. Otherwise user custom logging takes place.
+        /// You can activate system logging with ApplySystemLogging(bool apply) method.
         /// </summary>
         /// <param name="format">format of a message</param>
         /// <param name="goToNewLine">whether to break the line or not</param>
         /// <param name="formatParameters">values for format parameter</param>
+        /// <param name="logOperationType">specifies type of operation</param>
+        /// <param name="includeInvocationTime">specifies whether to include timestamp</param>
         /// <returns>void</returns>
-        public static void Log(string format, bool goToNewLine, params string[] formatParameters)
+        public static void Log(string format, bool goToNewLine, LogOperationTypeEnum logOperationType = LogOperationTypeEnum.INFO, bool includeInvocationTime = true, params string[] formatParameters)
         {
-            if (_redirectToInMemoryLogger || _redirectToTextFileLogger)
+            if (_redirectToInMemoryLogger || _redirectToTextFileLogger || _redirectToDatabaseLogger)
             {
                 if (_redirectToInMemoryLogger)
-                    LogToInMemoryLogger(format, goToNewLine, formatParameters);
+                    LogToInMemoryLogger(format, goToNewLine, logOperationType, includeInvocationTime, formatParameters);
                 if(_redirectToTextFileLogger)
-                    LogToTextFileLogger(format, goToNewLine, formatParameters);
+                    LogToTextFileLogger(format, goToNewLine, logOperationType, includeInvocationTime, formatParameters);
+                if(_redirectToDatabaseLogger)
+                    LogToDatabaseLogger(format, goToNewLine, logOperationType, includeInvocationTime, formatParameters);
             }
             else
-                LogToConsoleOutput(format, goToNewLine, formatParameters);
+                LogToConsoleOutput(format, goToNewLine, logOperationType, includeInvocationTime, formatParameters);
         }
 
         /// <summary>
         /// Moves logging to the next paragraph.
+        /// Logging options will be applied if system logging is active. Otherwise user custom logging takes place.
+        /// You can activate system logging with ApplySystemLogging(bool apply) method.
         /// </summary>
         /// <param name="numberOfLines">number of lines to move cursor downward</param>
+        /// <param name="logOperationType">specifies type of operation</param>
+        /// <param name="includeInvocationTime">specifies whether to include timestamp</param>
         [Obsolete("This method will be removed in the future releases of this library. Please use ComposeLoggingOutputLayout method instead.")]
-        public static void MoveToTheNextSection(int numberOfLines = 2)
+        public static void MoveToTheNextSection(int numberOfLines = 2, LogOperationTypeEnum logOperationType = LogOperationTypeEnum.INFO, bool includeInvocationTime = true)
         {
             for (int i = 0; i < numberOfLines; i++)
             {
-                LogToConsoleOutput(String.Empty, true);
+                LogToConsoleOutput(String.Empty, true, logOperationType, includeInvocationTime);
             }
         }
 
         /// <summary>
         /// Appends 'numberOfLines' empty lines to the current log. With default paramters invocation [ ComposeLoggingOutputLayout() ] it acts like deprecated metohod MoveToTheNextSection.
         /// In a nutchel what is does is the following: it adds horizontally or vertically number of spaces or tabulators to the appropriate logger or loggers depending on which loggers are active.
+        /// Logging options will be applied if system logging is active. Otherwise user custom logging takes place.
+        /// You can activate system logging with ApplySystemLogging(bool apply) method.
         /// </summary>
         /// <param name="numberOfLines">number of lines to move cursor downward</param>
         /// <param name="applyPreviousParameterValueOfTabulatorsInstead">whether to append tabulators instead of empty strings</param>
         /// <param name="goToNewLine">whether to break the line or not</param>
         /// <param name="applyOneSpaceString">whether to append one space striing instead of empty string</param>
+        /// <param name="logOperationType">specifies type of operation</param>
+        /// <param name="includeInvocationTime">specifies whether to include timestamp</param>
         /// <returns>void</returns>
-        public static void ComposeLoggingOutputLayout(int numberOfLines = 2, bool applyPreviousParameterValueOfTabulatorsInstead = false, bool goToNewLine = true, bool applyOneSpaceString = false)
+        public static void ComposeLoggingOutputLayout(
+                                                      int numberOfLines = 2, bool applyPreviousParameterValueOfTabulatorsInstead = false, bool goToNewLine = true, bool applyOneSpaceString = false,
+                                                      LogOperationTypeEnum logOperationType = LogOperationTypeEnum.INFO, bool includeInvocationTime = true
+                                                     )
         {
             const string oneSpace = " ";
             if (applyPreviousParameterValueOfTabulatorsInstead)
             {
-                if (_redirectToInMemoryLogger || _redirectToTextFileLogger)
+                if (_redirectToInMemoryLogger || _redirectToTextFileLogger || _redirectToDatabaseLogger)
                 {
                     if (_redirectToInMemoryLogger)
                     {
                         for (int i = 0; i < numberOfLines; i++)
                         {
-                            LogToInMemoryLogger("\t", false);
+                            LogToInMemoryLogger("\t", false, logOperationType, includeInvocationTime);
                         }
                         if (goToNewLine)
-                            LogToInMemoryLogger(String.Empty, true);
+                            LogToInMemoryLogger(String.Empty, true, logOperationType, includeInvocationTime);
                     }
                     if (_redirectToTextFileLogger)
                     {
                         for (int i = 0; i < numberOfLines; i++)
                         {
-                            LogToTextFileLogger("\t", false);
+                            LogToTextFileLogger("\t", false, logOperationType, includeInvocationTime);
                         }
                         if (goToNewLine)
-                            LogToTextFileLogger(String.Empty, true);
+                            LogToTextFileLogger(String.Empty, true, logOperationType, includeInvocationTime);
+                    }
+                    if (_redirectToDatabaseLogger)
+                    {
+                        for (int i = 0; i < numberOfLines; i++)
+                        {
+                            LogToDatabaseLogger("\t", false, logOperationType, includeInvocationTime);
+                        }
+                        if (goToNewLine)
+                            LogToDatabaseLogger(String.Empty, true, logOperationType, includeInvocationTime);
                     }
                 }
                 else
                 {
                     for (int i = 0; i < numberOfLines; i++)
                     {
-                        LogToConsoleOutput("\t", false);
+                        LogToConsoleOutput("\t", false, logOperationType, includeInvocationTime);
                     }
                     if (goToNewLine)
-                        LogToConsoleOutput(String.Empty, true);
+                        LogToConsoleOutput(String.Empty, true, logOperationType, includeInvocationTime);
                 }
             }
             else
             {
-                if (_redirectToInMemoryLogger || _redirectToTextFileLogger)
+                if (_redirectToInMemoryLogger || _redirectToTextFileLogger || _redirectToDatabaseLogger)
                 {
                     if (_redirectToInMemoryLogger)
                     {
@@ -239,18 +331,18 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                         {
                             for (int i = 0; i < numberOfLines; i++)
                             {
-                                LogToInMemoryLogger(oneSpace, false);
+                                LogToInMemoryLogger(oneSpace, false, logOperationType, includeInvocationTime);
                             }
                         }
                         else
                         {
                             for (int i = 0; i < numberOfLines; i++)
                             {
-                                LogToInMemoryLogger(String.Empty, true);
+                                LogToInMemoryLogger(String.Empty, true, logOperationType, includeInvocationTime);
                             }
                         }
                         if (goToNewLine)
-                            LogToInMemoryLogger(String.Empty, true);
+                            LogToInMemoryLogger(String.Empty, true, logOperationType, includeInvocationTime);
                     }
                     if (_redirectToTextFileLogger)
                     {
@@ -258,18 +350,37 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                         {
                             for (int i = 0; i < numberOfLines; i++)
                             {
-                                LogToTextFileLogger(oneSpace, false);
+                                LogToTextFileLogger(oneSpace, false, logOperationType, includeInvocationTime);
                             }
                         }
                         else
                         {
                             for (int i = 0; i < numberOfLines; i++)
                             {
-                                LogToTextFileLogger(String.Empty, true);
+                                LogToTextFileLogger(String.Empty, true, logOperationType, includeInvocationTime);
                             }
                         }
                         if (goToNewLine)
-                            LogToTextFileLogger(String.Empty, true);
+                            LogToTextFileLogger(String.Empty, true, logOperationType, includeInvocationTime);
+                    }
+                    if (_redirectToDatabaseLogger)
+                    {
+                        if (applyOneSpaceString)
+                        {
+                            for (int i = 0; i < numberOfLines; i++)
+                            {
+                                LogToDatabaseLogger(oneSpace, false, logOperationType, includeInvocationTime);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < numberOfLines; i++)
+                            {
+                                LogToDatabaseLogger(String.Empty, true, logOperationType, includeInvocationTime);
+                            }
+                        }
+                        if (goToNewLine)
+                            LogToDatabaseLogger(String.Empty, true, logOperationType, includeInvocationTime);
                     }
                 }
                 else
@@ -278,18 +389,18 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                     {
                         for (int i = 0; i < numberOfLines; i++)
                         {
-                            LogToConsoleOutput(oneSpace, false);
+                            LogToConsoleOutput(oneSpace, false, logOperationType, includeInvocationTime);
                         }
                     }
                     else
                     {
                         for (int i = 0; i < numberOfLines; i++)
                         {
-                            LogToConsoleOutput(String.Empty, true);
+                            LogToConsoleOutput(String.Empty, true, logOperationType, includeInvocationTime);
                         }
                     }
                     if (goToNewLine)
-                        LogToConsoleOutput(String.Empty, true);
+                        LogToConsoleOutput(String.Empty, true, logOperationType, includeInvocationTime);
                 }
             }
         }
@@ -297,13 +408,20 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// <summary>
         /// Logs summary info about number of records to insert, update, delete, log.
         /// Can be used for any other type of logging. The idea is to provide some kind of summary information.
+        /// Logging options will be applied if system logging is active. Otherwise user custom logging takes place.
+        /// You can activate system logging with ApplySystemLogging(bool apply) method.
         /// </summary>
         /// <param name="labelValueItemsToInsert">records to insert - description + number of records (in the shape of key-value pairs: new string[] {"new items added", "5", ...})</param>
         /// <param name="labelValueItemsToUpdate">records to update - description + number of records (in the shape of key-value pairs: new string[] {"old items updated", "3", ...})</param>
         /// <param name="labelValueItemsToDelete">records to delete - description + number of records (in the shape of key-value pairs: new string[] {"old items deleted", "2", ...})</param>
         /// <param name="labelValueItemsToLog">records to log - description + number of records (in the shape of key-value pairs: new string[] {"new items logged", "7", ...})</param>
+        /// <param name="logOperationType">specifies type of operation</param>
+        /// <param name="includeInvocationTime">specifies whether to include timestamp</param>
         /// <returns>void</returns>
-        public static void LogSummary(string[] labelValueItemsToInsert, string[] labelValueItemsToUpdate, string[] labelValueItemsToDelete, string[] labelValueItemsToLog)
+        public static void LogSummary(
+                                       string[] labelValueItemsToInsert, string[] labelValueItemsToUpdate, string[] labelValueItemsToDelete, string[] labelValueItemsToLog,
+                                       LogOperationTypeEnum logOperationType = LogOperationTypeEnum.INFO, bool includeInvocationTime = true
+                                     )
         {
             if (labelValueItemsToInsert.Length % 2 != 0)
                throw ExceptionUtils.CreateException("Number of label - value INSERT pairs are odd. They have to be even.");
@@ -319,44 +437,101 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             int deleteLength = labelValueItemsToDelete.Length;
             int logLength = labelValueItemsToLog.Length;
 
-            ProcessLoop(labelValueItemsToInsert, insertLength, OperationTypeEnum.INSERT);
-            ProcessLoop(labelValueItemsToUpdate, updateLength, OperationTypeEnum.UPDATE);
-            ProcessLoop(labelValueItemsToDelete, deleteLength, OperationTypeEnum.DELETE);
-            ProcessLoop(labelValueItemsToLog, logLength, OperationTypeEnum.LOG);
+            ProcessLoop(labelValueItemsToInsert, insertLength, OperationTypeEnum.INSERT, logOperationType, includeInvocationTime);
+            ProcessLoop(labelValueItemsToUpdate, updateLength, OperationTypeEnum.UPDATE, logOperationType, includeInvocationTime);
+            ProcessLoop(labelValueItemsToDelete, deleteLength, OperationTypeEnum.DELETE, logOperationType, includeInvocationTime);
+            ProcessLoop(labelValueItemsToLog, logLength, OperationTypeEnum.LOG, logOperationType, includeInvocationTime);
         }
 
-        private static void LogToInMemoryLogger(string format, bool goToNewLine, params string[] formatParameters)
+        private static void LogToInMemoryLogger(string format, bool goToNewLine, LogOperationTypeEnum logOperationType, bool includeInvocationTime, params string[] formatParameters)
         {
-            if (goToNewLine)
-                _inMemoryLoggerStorage.AppendFormat(format, formatParameters).AppendLine();
+            if (_applySystemLogging)
+            {
+                string currentMethodStackTrace = GetCurrentInvokedMethodStackTrace(logOperationType, includeInvocationTime, true).Replace("#", ":");
+                if (goToNewLine)
+                    _inMemoryLoggerStorage.Append(currentMethodStackTrace + ":\t").AppendFormat(format, formatParameters).AppendLine();
+                else
+                    _inMemoryLoggerStorage.Append(currentMethodStackTrace).AppendFormat(format, formatParameters);
+            }
             else
-                _inMemoryLoggerStorage.AppendFormat(format, formatParameters);
+            {
+                if (goToNewLine)
+                    _inMemoryLoggerStorage.AppendFormat(format, formatParameters).AppendLine();
+                else
+                    _inMemoryLoggerStorage.AppendFormat(format, formatParameters);
+            }
         }
 
-        private static void LogToTextFileLogger(string format, bool goToNewLine, params string[] formatParameters)
+        private static void LogToTextFileLogger(string format, bool goToNewLine, LogOperationTypeEnum logOperationType, bool includeInvocationTime, params string[] formatParameters)
         {
-            StreamWriter writer = File.AppendText(_textFileLoggerStorage);
-            writer.AutoFlush = true;
+            if (_applySystemLogging)
+            {
+                StreamWriter writer = File.AppendText(_textFileLoggerStorage);
+                writer.AutoFlush = true;
 
-            string content = String.Format(format, formatParameters);
+                string currentMethodStackTrace = GetCurrentInvokedMethodStackTrace(logOperationType, includeInvocationTime, true).Replace("#", ":");
+                string content = currentMethodStackTrace + ":\t" + String.Format(format, formatParameters);
 
-            if (goToNewLine)
-                writer.WriteLine(content);
+                if (goToNewLine)
+                    writer.WriteLine(content);
+                else
+                    writer.Write(content);
+
+                writer.Close();
+            }
             else
-                writer.Write(content);
+            {
+                StreamWriter writer = File.AppendText(_textFileLoggerStorage);
+                writer.AutoFlush = true;
 
-            writer.Close();
+                string content = String.Format(format, formatParameters);
+
+                if (goToNewLine)
+                    writer.WriteLine(content);
+                else
+                    writer.Write(content);
+
+                writer.Close();
+            }
         }
 
-        private static void LogToConsoleOutput(string format, bool goToNewLine, params string[] formatParameters)
+        private static void LogToDatabaseLogger(string format, bool goToNewLine, LogOperationTypeEnum logOperationType, bool includeInvocationTime, params string[] formatParameters)
         {
-            if (goToNewLine)
-                Console.WriteLine(string.Format(format, formatParameters));
+            if (_applySystemLogging)
+            {
+                string currentMethodStackTrace = GetCurrentInvokedMethodStackTrace(logOperationType, includeInvocationTime, true) + ":\t";
+                string log = TransformToTableRow(currentMethodStackTrace, String.Format(format, formatParameters));
+
+                DatabaseUtils.CreateSqlCommand(_databaseConnection, log, CommandType.Text, _commandTimeout).ExecuteNonQuery();
+            }
             else
-                Console.Write(string.Format(format, formatParameters));
+            {
+                string log = TransformToTableRow(String.Empty, String.Format(format, formatParameters));
+                DatabaseUtils.CreateSqlCommand(_databaseConnection, log, CommandType.Text, _commandTimeout).ExecuteNonQuery();
+            }
         }
 
-        private static void ProcessLoop(string[] items, int length, OperationTypeEnum operationType)
+        private static void LogToConsoleOutput(string format, bool goToNewLine, LogOperationTypeEnum logOperationType, bool includeInvocationTime, params string[] formatParameters)
+        {
+            if (_applySystemLogging)
+            {
+                string currentMethodStackTrace = GetCurrentInvokedMethodStackTrace(logOperationType, includeInvocationTime).Replace("#", ":");
+
+                if (goToNewLine)
+                    Console.WriteLine(currentMethodStackTrace + string.Format(format, formatParameters));
+                else
+                    Console.Write(currentMethodStackTrace + string.Format(format, formatParameters));
+            }
+            else
+            {
+                if (goToNewLine)
+                    Console.WriteLine(string.Format(format, formatParameters));
+                else
+                    Console.Write(string.Format(format, formatParameters));
+            }
+        }
+
+        private static void ProcessLoop(string[] items, int length, OperationTypeEnum operationType, LogOperationTypeEnum logOperationType, bool includeInvocationTime)
         {
             string insertMessageFormat = "Records to insert ({0}): {1}";
             string updateMessageFormat = "Records to update ({0}): {1}";
@@ -365,28 +540,135 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
             if (operationType == OperationTypeEnum.INSERT)
             {
-                SendDataToOutput(insertMessageFormat, items, length);
+                SendDataToOutput(insertMessageFormat, items, length, logOperationType, includeInvocationTime);
             }
             else if (operationType == OperationTypeEnum.UPDATE)
             {
-                SendDataToOutput(updateMessageFormat, items, length);
+                SendDataToOutput(updateMessageFormat, items, length, logOperationType, includeInvocationTime);
             }
             else if (operationType == OperationTypeEnum.DELETE)
             {
-                SendDataToOutput(deleteMessageFormat, items, length);
+                SendDataToOutput(deleteMessageFormat, items, length, logOperationType, includeInvocationTime);
             }
             else if (operationType == OperationTypeEnum.LOG)
             {
-                SendDataToOutput(logMessageFormat, items, length);
+                SendDataToOutput(logMessageFormat, items, length, logOperationType, includeInvocationTime);
             }
         }
 
-        private static void SendDataToOutput(string format, string[] items, int length)
+        private static void SendDataToOutput(string format, string[] items, int length, LogOperationTypeEnum logOperationType, bool includeInvocationTime)
         {
            for (int i = 0; i < length; i += 2)
            {
-                Log(format, true, items[i], items[i + 1]);
+                Log(format, true, logOperationType, includeInvocationTime, items[i], items[i + 1]);
            }
         }
-	}
+
+        private static bool ValidateLoggerTableSchema(string loggerTableName, int commandTimeout, out string validationMessage)
+        {
+            string commandText = String.Format(@"
+                                                    DECLARE @VALIDATION_MESSAGE AS VARCHAR(MAX) = ''
+
+													IF NOT EXISTS (
+														SELECT 1/0 FROM INFORMATION_SCHEMA.COLUMNS AS ISC WHERE ISC.TABLE_NAME = '{0}'
+													)
+													 SELECT @VALIDATION_MESSAGE = 'Table of logs does not exist.'
+
+													IF (SELECT COUNT(ISC.ORDINAL_POSITION) FROM INFORMATION_SCHEMA.COLUMNS AS ISC WHERE ISC.TABLE_NAME = '{0}') < 4
+													 SELECT @VALIDATION_MESSAGE = 'Table of logs has to have 4 columns of type DATETIME or DATETIME2, VARCHAR(7), VARCHAR(MAX), VARCHAR(MAX) respectively.'
+													ELSE
+													 BEGIN
+														SELECT 
+															@VALIDATION_MESSAGE = @VALIDATION_MESSAGE +
+															CASE
+															 WHEN ISC.ORDINAL_POSITION = 1 AND ISC.DATA_TYPE NOT IN ('datetime', 'datetime2')
+															  THEN 'First column has to be of type datetime or datetime2, '
+															 WHEN ISC.ORDINAL_POSITION = 2 AND (ISC.DATA_TYPE <> 'varchar' OR ISC.CHARACTER_MAXIMUM_LENGTH < 7)
+															  THEN 'Second column has to be of type varchar(7), '
+															 WHEN ISC.ORDINAL_POSITION IN (3, 4) AND (ISC.DATA_TYPE <> 'varchar' OR ISC.CHARACTER_MAXIMUM_LENGTH <> -1)
+															  THEN 'Third or fourth column has to be of type varchar(MAX)'
+															 ELSE ''
+															END 
+														FROM INFORMATION_SCHEMA.COLUMNS AS ISC
+														WHERE ISC.TABLE_NAME = '{0}'
+														ORDER BY ISC.ORDINAL_POSITION
+
+														IF LEFT(@VALIDATION_MESSAGE, 1) = 'F'
+														 BEGIN
+															SET @VALIDATION_MESSAGE = REPLACE(@VALIDATION_MESSAGE, 'Second', 'second')
+															SET @VALIDATION_MESSAGE = REPLACE(@VALIDATION_MESSAGE, 'Third', 'third')
+														 END
+														IF LEFT(@VALIDATION_MESSAGE, 1) = 'S'
+														 SET @VALIDATION_MESSAGE = REPLACE(@VALIDATION_MESSAGE, 'Third', 'third')
+													 END
+
+                                                    SELECT @VALIDATION_MESSAGE
+                                                ",
+                                                loggerTableName
+                                              );
+
+            validationMessage = (string)DatabaseUtils.CreateSqlCommand(_databaseConnection, commandText, CommandType.Text, commandTimeout).ExecuteScalar();
+
+            if (String.IsNullOrEmpty(validationMessage))
+                return true;
+            return false;
+        }
+
+        private static string TransformToTableRow(string currentMethodStackTrace, string userLog)
+        {
+            string logTableRowFormat = String.Empty;
+            string[] values = new string[4];
+
+            if (String.IsNullOrEmpty(currentMethodStackTrace))
+            {
+                values[0] = "NULL";
+                values[1] = values[2] = "'" + String.Empty + "'";
+                values[3] = "'" + userLog + "'";
+            }
+            else
+            {
+                string[] systemData = currentMethodStackTrace.Split(new[] { '\t' });
+                values[0] = "'" + systemData[0].Replace("[", String.Empty).Replace("]", String.Empty) + "'";
+                values[1] = "'" + systemData[1].Replace("[", String.Empty).Replace("]", String.Empty) + "'";
+                values[2] = "'" + systemData[2].Replace(":", String.Empty).Replace("#", ":") + "'";
+                values[3] = "'" + userLog + "'";
+            }
+
+            logTableRowFormat = "INSERT " + _databaseTableNameLoggerStorage + " VALUES (" + MiscUtils.StringJoin(",", values) + ")";
+
+            return logTableRowFormat;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static string GetCurrentInvokedMethodStackTrace(LogOperationTypeEnum logOperationType = LogOperationTypeEnum.INFO, bool includeInvocationTime = true, bool reverseFrameStackOrder = false)
+        {
+            string path = String.Empty;
+            IList<string> methodInvocationStack = new List<string>();
+
+            if (includeInvocationTime)
+                path += ("[" + DateTimeUtils.DateTimeToString(DATETIME_PATTERN_FOR_LOGGING, DateTime.Now) + "]\t");
+
+            path += ("[" + logOperationType + "]\t");
+
+            StackTrace stackTrace = new StackTrace(true);
+            StackFrame stackFrame = null;
+            MethodBase methodBase = null;
+            for (int i = 3; i < stackTrace.FrameCount; i++)
+            {
+                stackFrame = stackTrace.GetFrame(i);
+                methodBase = stackFrame.GetMethod();
+                if (methodBase.Name == "_nExecuteAssembly")
+                    break;
+                methodInvocationStack.Add("[" + methodBase.DeclaringType.FullName + "." + methodBase.Name + "# " + stackFrame.GetFileLineNumber() + "]");
+            }
+
+            string[] methodInvocationArray = MiscUtils.ConvertListToArray<string>(methodInvocationStack);
+            if(reverseFrameStackOrder)
+                Array.Reverse(methodInvocationArray);
+
+            path += MiscUtils.StringJoin(".", methodInvocationArray);
+
+            return path; 
+        }
+    }
 }

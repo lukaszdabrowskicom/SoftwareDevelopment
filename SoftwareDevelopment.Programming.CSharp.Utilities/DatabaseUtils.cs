@@ -21,12 +21,13 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// </summary>
         /// <param name="sqlConnectionString">connection string</param>
         /// <param name="openConnection">specifies whether additionaly open beforehand created connection</param>
+        /// <param name="logOpendConnection">specifies whether put information about opening connection to the default application output</param>
         /// <returns>SqlConnection object</returns>
-        public static SqlConnection CreateAndOptionallyOpenConnection(string sqlConnectionString, bool openConnection = false)
+        public static SqlConnection CreateAndOptionallyOpenConnection(string sqlConnectionString, bool openConnection = false, bool logOpendConnection = false)
         {
             SqlConnection sqlConnection = new SqlConnection(sqlConnectionString);
             if (openConnection)
-                OpenDatabaseConnection(sqlConnection, true);
+                OpenDatabaseConnection(sqlConnection, logOpendConnection);
 
             return sqlConnection;
         }
@@ -43,7 +44,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             {
                 connection.Open();
                 if (logOpendConnection)
-                    LogUtils.Log("established and opened", true);
+                    LogUtils.Log("established and opened", true, LogOperationTypeEnum.INFO, true);
             }
         }
 
