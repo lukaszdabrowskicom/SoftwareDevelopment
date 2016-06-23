@@ -1,8 +1,8 @@
 # Dabrowski Software Development
 modifications:
 - NEW:
- - [LogUtils] new custom logger: SQL Server database <strong>UPLOADED [NEW] <font color="red">2016-06-23 17:02:00</font></strong>
-
+ - [LogUtils] new custom logger: <font color="red">SQL Server database</font> <strong>UPLOADED [NEW] 2016-06-23 17:02:00<</strong>
+ 
 - OLD:
  - [LogUtils] new custom loggers /* ability to log to multiple loggers simultaneously */ UPLOADED [OLD]
  - [FileAndDirectoryUtils] new method: CreateOrOverrideExistingFile UPLOADED [OLD]
