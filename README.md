@@ -1,5 +1,10 @@
 # Dabrowski Software Development
+modifications:
 - NEW:
+ - [LogUtils] new custom loggers /* ability to log to multiple loggers simultaneously */ <strong>UPLOADED [NEW]</strong>
+ - [FileAndDirectoryUtils] new method: CreateOrOverrideExistingFile <strong>UPLOADED [NEW]</strong>
+
+- OLD:
  - [MiscUtils] new generic methods: TakeFirstCollectionItems, TakeLastCollectionItems, TakeCollectionItems <strong>UPLOADED [NEW]</strong> /* returns first-, last-, or range- number of items from a collection */
  - [MiscUtils] AddEmptyItemsToColllection <strong>UPLOADED [NEW]</strong> /* adds collection item default value to comply with CSV-like format */
  - [ExcelUtils] new method: LoadDataFromTextFile <strong>UPLOADED [NEW]</strong> /* loads data from text CSV-like file into DataTable */
