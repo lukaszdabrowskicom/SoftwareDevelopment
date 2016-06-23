@@ -1,13 +1,14 @@
 # Dabrowski Software Development
 modifications:
 - NEW:
- - [LogUtils] new custom loggers /* ability to log to multiple loggers simultaneously */ <strong>UPLOADED [NEW]</strong>
- - [FileAndDirectoryUtils] new method: CreateOrOverrideExistingFile <strong>UPLOADED [NEW]</strong>
+ - [LogUtils] new custom logger: SQL Server database <strong>UPLOADED [NEW]</strong>
 
 - OLD:
- - [MiscUtils] new generic methods: TakeFirstCollectionItems, TakeLastCollectionItems, TakeCollectionItems <strong>UPLOADED [NEW]</strong> /* returns first-, last-, or range- number of items from a collection */
- - [MiscUtils] AddEmptyItemsToColllection <strong>UPLOADED [NEW]</strong> /* adds collection item default value to comply with CSV-like format */
- - [ExcelUtils] new method: LoadDataFromTextFile <strong>UPLOADED [NEW]</strong> /* loads data from text CSV-like file into DataTable */
+ - [LogUtils] new custom loggers /* ability to log to multiple loggers simultaneously */ UPLOADED [OLD]
+ - [FileAndDirectoryUtils] new method: CreateOrOverrideExistingFile UPLOADED [OLD]
+ - [MiscUtils] new generic methods: TakeFirstCollectionItems, TakeLastCollectionItems, TakeCollectionItems UPLOADED [OLD] /* returns first-, last-, or range- number of items from a collection */
+ - [MiscUtils] AddEmptyItemsToColllection UPLOADED [OLD] /* adds collection item default value to comply with CSV-like format */
+ - [ExcelUtils] new method: LoadDataFromTextFile UPLOADED [OLD] /* loads data from text CSV-like file into DataTable */
 
 
 # This is free C# library consisting of various util classes for common day-to-day operations.
