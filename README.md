@@ -1,7 +1,7 @@
 # Dabrowski Software Development
 modifications:
 - NEW:
- - [LogUtils] new custom logger: SQL Server database. <strong>UPLOADED 2016-06-23 17:02:00 [NEW]</strong>
+ - [LogUtils] new custom logger: SQL Server database. <strong>UPLOADED 2016-06-23 17:02:00 GMT +01:00 [NEW]</strong>
  
 - OLD:
  - [LogUtils] new custom loggers /* ability to log to multiple loggers simultaneously */ UPLOADED [OLD]
