@@ -14,11 +14,12 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// <summary>
         /// Run external process with provided parameters.
         /// </summary>
-        /// <param name="processName"></param>
-        /// <param name="processArgs"></param>
-        /// <param name="redirectStandardOutput"></param>
-        /// <param name="pathToLogFile"></param>
-		public static void RunProcess(string processName, string processArgs, bool redirectStandardOutput = false, string pathToLogFile = null)
+        /// <param name="processName">name of the process to run</param>
+        /// <param name="processArgs">process arguments</param>
+        /// <param name="redirectStandardOutput">specifies whether to redirect process output</param>
+        /// <param name="pathToLogFile">path to log file</param>
+        /// <param name="waitForExit">specifies whether to run process in an asynchronous way</param>
+		public static void RunProcess(string processName, string processArgs, bool redirectStandardOutput = false, string pathToLogFile = null, bool waitForExit = true)
 		{
 			LogUtils.Log("Preparing process setup info... ", false);
 			ProcessStartInfo processSetupParams = new ProcessStartInfo();
@@ -31,7 +32,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
             if (redirectStandardOutput && String.IsNullOrEmpty(pathToLogFile))
             {
-                throw ExceptionUtils.CreateException(ExceptionUtils.ArgumentNullException_MessageFormat, "pathToLogFile");
+                throw ExceptionUtils.CreateException("Redirecting process output to log file requires providing log file path. " + ExceptionUtils.ArgumentNullException_MessageFormat, "pathToLogFile");
             }
             processSetupParams.RedirectStandardOutput = redirectStandardOutput;
 
@@ -49,7 +50,9 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                 File.AppendAllText(pathToLogFile, processOutput);
             }
 
-            process.WaitForExit();
+            if(waitForExit)
+                process.WaitForExit();
+
 			LogUtils.Log(string.Format("done ('{0}' completed successfully)", processName), true);
 		}
 	}
