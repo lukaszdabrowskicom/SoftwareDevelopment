@@ -2,9 +2,11 @@
 
 modifications:
 - NEW:
- - [ProcessUtils] running process in an asynchronous way. <strong>UPLOADED 2016-06-24 13:23:00 GMT +01:00 [NEW]</strong>
- 
+ - [LogUtils]  new custom logger Windows EventLog <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [NEW]</strong>
+ - [WindowsUtils]  impresonation <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [NEW]</strong> 
+
 - OLD:
+ - [ProcessUtils] running process in an asynchronous way. <strong>UPLOADED 2016-06-24 13:23:00 GMT +01:00</strong>
  - [LogUtils] new custom loggers /* ability to log to multiple loggers simultaneously */ UPLOADED [OLD]
  - [FileAndDirectoryUtils] new method: CreateOrOverrideExistingFile UPLOADED [OLD]
  - [MiscUtils] new generic methods: TakeFirstCollectionItems, TakeLastCollectionItems, TakeCollectionItems UPLOADED [OLD] /* returns first-, last-, or range- number of items from a collection */
