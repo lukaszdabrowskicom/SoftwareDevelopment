@@ -1,7 +1,8 @@
-# Dabrowski Software Development
+# Dabrowski Software Development [ C# ]
+
 modifications:
 - NEW:
- - [LogUtils] new custom logger: SQL Server database. <strong>UPLOADED 2016-06-23 17:02:00 GMT +01:00 [NEW]</strong>
+ - [ProcessUtils] running process in an asynchronous way. <strong>UPLOADED 2016-06-24 13:23:00 GMT +01:00 [NEW]</strong>
  
 - OLD:
  - [LogUtils] new custom loggers /* ability to log to multiple loggers simultaneously */ UPLOADED [OLD]
