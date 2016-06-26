@@ -16,7 +16,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// </summary>
         /// <param name="outputStream">output stream to serialize object to</param>
         /// <param name="node">object instance to serialize</param>
-        /// returns>object serialized as string</returns>
+        /// <returns>object serialized as string</returns>
         public static void Serialize(Stream outputStream, T node)
         {
             _serializer = new XmlSerializer(typeof(T));
@@ -26,8 +26,8 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// <summary>
         /// Deserializes object back to object instance.
         /// </summary>
-        /// <param name="outputStream">input stream to deserialize object from</param>
-        /// returns>object instance</returns>
+        /// <param name="inputStream">input stream to deserialize object from</param>
+        /// <returns>object instance</returns>
         public static object Deserialize(Stream inputStream)
         {
             _serializer = new XmlSerializer(typeof(T));

@@ -52,7 +52,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         public static string MAIL_SUBJECT;
 
         /// <summary>
-        //try-catch acts as as simple precaution in case you just need to use other util method rather than sending email, in which case exception will probably be thrown due to lack of config file.
+        ///try-catch acts as as simple precaution in case you just need to use other util method rather than sending email, in which case exception will probably be thrown due to lack of config file.
         /// </summary>
         static EmailUtils()
         {

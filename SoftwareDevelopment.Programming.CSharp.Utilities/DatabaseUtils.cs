@@ -3,9 +3,9 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 using MySql.Data.MySqlClient;
-using System.Reflection;
 
 namespace SoftwareDevelopment.Programming.CSharp.Utilities
 {
@@ -15,23 +15,6 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
     [Obfuscation(ApplyToMembers = true, Exclude = false, StripAfterObfuscation = true)]
     public static class DatabaseUtils
     {
-
-        /// <summary>
-        /// Returns SqlConnection object.
-        /// </summary>
-        /// <param name="sqlConnectionString">connection string</param>
-        /// <param name="openConnection">specifies whether additionaly open beforehand created connection</param>
-        /// <param name="logOpendConnection">specifies whether put information about opening connection to the default application output</param>
-        /// <returns>SqlConnection object</returns>
-        public static SqlConnection CreateAndOptionallyOpenConnection(string sqlConnectionString, bool openConnection = false, bool logOpendConnection = false)
-        {
-            SqlConnection sqlConnection = new SqlConnection(sqlConnectionString);
-            if (openConnection)
-                OpenDatabaseConnection(sqlConnection, logOpendConnection);
-
-            return sqlConnection;
-        }
-
         /// <summary>
         /// Opens IDbConnection object.
         /// </summary>
@@ -48,45 +31,48 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             }
         }
 
-
         /// <summary>
-        /// Closes .NET sql wrapper for MySql connection.
+        /// Closes .NET sql reader.
         /// </summary>
-        /// <param name="connection">reference to .NET sql wrapper for MySql connection</param>
+        /// <param name="reader">.NET sql reader object to close</param>
         /// <returns>void</returns>
-        public static void CloseMySqlDatabaseConnection(ref MySqlConnection connection)
+        public static void CloseDataReader(IDataReader reader)
         {
-            if ((connection.State & ConnectionState.Open) == ConnectionState.Open)
-            {
-                connection.Close();
-            }
+            if (!reader.IsClosed)
+                reader.Close();
         }
 
         /// <summary>
-        /// Closes .NET sql wrapper for MySql connection.
+        /// Returns SqlConnection object.
         /// </summary>
-        /// <param name="connection">reference to .NET sql wrapper for MySql connection</param>
-        /// <param name="releaseResources">specifies whether release resources after closing connection</param>
-        /// <returns>void</returns>
-        public static void CloseMySqlDatabaseConnection(ref MySqlConnection connection, bool releaseResources)
+        /// <param name="sqlConnectionString">connection string</param>
+        /// <param name="openConnection">specifies whether additionaly open beforehand created connection</param>
+        /// <param name="logOpendConnection">specifies whether put information about opening connection to the default application output</param>
+        /// <returns>SqlConnection object</returns>
+        [Obsolete("This method will be removed in the future releases of this library. Please use CreateAndOptionallyOpenSqlServerConnection method instead.")]
+        public static SqlConnection CreateAndOptionallyOpenConnection(string sqlConnectionString, bool openConnection = false, bool logOpendConnection = false)
         {
-            if (releaseResources)
-            {
-                if (connection != null && ((connection.State & ConnectionState.Open) == ConnectionState.Open))
-                {
-                    connection.Close();
-                    connection.Dispose();
-                    connection = null;
-                }
-                else if (connection != null && ((connection.State & ConnectionState.Closed) == ConnectionState.Closed))
-                {
-                    connection.Close();
-                    connection.Dispose();
-                    connection = null;
-                }
-            }
-            else
-                CloseMySqlDatabaseConnection(ref connection);
+            SqlConnection sqlConnection = new SqlConnection(sqlConnectionString);
+            if (openConnection)
+                OpenDatabaseConnection(sqlConnection, logOpendConnection);
+
+            return sqlConnection;
+        }
+
+        /// <summary>
+        /// Returns SqlConnection object.
+        /// </summary>
+        /// <param name="sqlConnectionString">connection string</param>
+        /// <param name="openConnection">specifies whether additionaly open beforehand created connection</param>
+        /// <param name="logOpendConnection">specifies whether put information about opening connection to the default application output</param>
+        /// <returns>SqlConnection object</returns>
+        public static SqlConnection CreateAndOptionallyOpenSqlServerConnection(string sqlConnectionString, bool openConnection = false, bool logOpendConnection = false)
+        {
+            SqlConnection sqlConnection = new SqlConnection(sqlConnectionString);
+            if (openConnection)
+                OpenDatabaseConnection(sqlConnection, logOpendConnection);
+
+            return sqlConnection;
         }
 
         /// <summary>
@@ -129,14 +115,59 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         }
 
         /// <summary>
-        /// Closes .NET sql reader.
+        /// Returns .NET wrapper for MySql connection object.
         /// </summary>
-        /// <param name="reader">.NET sql reader object to close</param>
-        /// <returns>void</returns>
-        public static void CloseDataReader(IDataReader reader)
+        /// <param name="sqlConnectionString">connection string</param>
+        /// <param name="openConnection">specifies whether additionaly open beforehand created connection</param>
+        /// <param name="logOpendConnection">specifies whether put information about opening connection to the default application output</param>
+        /// <returns>MySqlConnection object</returns>
+        public static MySqlConnection CreateAndOptionallyOpenMySqlConnection(string sqlConnectionString, bool openConnection = false, bool logOpendConnection = false)
         {
-            if (!reader.IsClosed)
-                reader.Close();
+            MySqlConnection sqlConnection = new MySqlConnection(sqlConnectionString);
+            if (openConnection)
+                OpenDatabaseConnection(sqlConnection, logOpendConnection);
+
+            return sqlConnection;
+        }
+
+        /// <summary>
+        /// Closes .NET sql wrapper for MySql connection.
+        /// </summary>
+        /// <param name="connection">reference to .NET sql wrapper for MySql connection</param>
+        /// <returns>void</returns>
+        public static void CloseMySqlDatabaseConnection(ref MySqlConnection connection)
+        {
+            if ((connection.State & ConnectionState.Open) == ConnectionState.Open)
+            {
+                connection.Close();
+            }
+        }
+
+        /// <summary>
+        /// Closes .NET sql wrapper for MySql connection.
+        /// </summary>
+        /// <param name="connection">reference to .NET sql wrapper for MySql connection</param>
+        /// <param name="releaseResources">specifies whether release resources after closing connection</param>
+        /// <returns>void</returns>
+        public static void CloseMySqlDatabaseConnection(ref MySqlConnection connection, bool releaseResources)
+        {
+            if (releaseResources)
+            {
+                if (connection != null && ((connection.State & ConnectionState.Open) == ConnectionState.Open))
+                {
+                    connection.Close();
+                    connection.Dispose();
+                    connection = null;
+                }
+                else if (connection != null && ((connection.State & ConnectionState.Closed) == ConnectionState.Closed))
+                {
+                    connection.Close();
+                    connection.Dispose();
+                    connection = null;
+                }
+            }
+            else
+                CloseMySqlDatabaseConnection(ref connection);
         }
 
         /// <summary>

@@ -156,4 +156,31 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         ERROR
     }
 
+    /// <summary>
+    /// Type of Windows log operation.
+    /// </summary>
+    [Obfuscation(ApplyToMembers = true, Exclude = false, StripAfterObfuscation = true)]
+    public enum WindowsEventLogType
+    {
+        /// <summary>
+        /// Represents Application log type
+        /// </summary>
+        Application,
+
+        /// <summary>
+        /// Represents Security log type
+        /// </summary>
+        Security,
+
+        /// <summary>
+        /// Represents Setup log type
+        /// </summary>
+        Setup,
+
+        /// <summary>
+        /// Represents System log type
+        /// </summary>
+        System
+    }
+
 }

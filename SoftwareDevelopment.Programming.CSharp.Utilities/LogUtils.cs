@@ -50,6 +50,11 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         private static bool _applySystemLogging = false;
 
 
+        private static EventLog _eventLog = null;
+        private static WindowsEventLogType _eventLogType = WindowsEventLogType.Application;
+        private static bool _redirectToWindowsEventLog = false;
+
+
         /// <summary>
         /// Applies system logging, [full date and time]  [type of logging] [full path to method]: user logging goes here.
         /// Otherwise user custom logging is applied.
@@ -127,7 +132,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                 if (String.IsNullOrEmpty(loggerTableName))
                     throw ExceptionUtils.CreateException("Table name for storing log data is null or empty. Provide valid table name instead.");
 
-                _databaseConnection = DatabaseUtils.CreateAndOptionallyOpenConnection(connectionString, true);
+                _databaseConnection = DatabaseUtils.CreateAndOptionallyOpenSqlServerConnection(connectionString, true);
 
                string validationMessage;
                bool validationPassed = ValidateLoggerTableSchema(loggerTableName, commandTimeout, out validationMessage);
@@ -140,6 +145,61 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             _commandTimeout = commandTimeout;
             _databaseTableNameLoggerStorage = loggerTableName;
             _redirectToDatabaseLogger = redirect;
+        }
+
+
+        /// <summary>
+        /// Redirects all logging output to Windows event log making it default or one of the logging outputs for the whole of the running program.
+        /// </summary>
+        /// <param name="source">source name to register</param>
+        /// <param name="redirect">whether to redirect logging output to Windows event log or not</param>
+        /// <param name="machineName">specifies name of a computer on which to read from or write to events</param>
+        /// <param name="maximumKilobytes">specifies maximum log size</param>
+        /// <param name="windowsEventLogType">specifies type of the EventLog</param>
+        /// <param name="modifyOverflowPolicy">specifies whether to modify overflow policy</param>
+        /// <param name="overflowAction">specifies how to deal with new entries when current log reaches its maximum size. This parameter is considered only if modifyOverflowPolicy is set to true</param>
+        /// <param name="retentionDays">specifies number of days to retain entries in the current log. This parameter is considered only if modifyOverflowPolicy is set to true</param>
+        public static void RedirectToWindowsEventLog(string source, bool redirect, string machineName = "", long maximumKilobytes = -1, WindowsEventLogType windowsEventLogType = WindowsEventLogType.Application,
+                                                     bool modifyOverflowPolicy = false, OverflowAction overflowAction = OverflowAction.OverwriteAsNeeded, int retentionDays = -1)
+        {
+            if (redirect)
+            {
+                _eventLog = new EventLog();
+
+                _eventLog.Source = source;
+
+                if (!String.IsNullOrEmpty(machineName))
+                    _eventLog.MachineName = machineName;
+
+                if(maximumKilobytes != -1)
+                _eventLog.MaximumKilobytes = maximumKilobytes;
+
+                _eventLogType = windowsEventLogType;
+                _eventLog.Log = _eventLogType.ToString();
+
+                if (modifyOverflowPolicy)
+                    _eventLog.ModifyOverflowPolicy(overflowAction, retentionDays);
+            }
+            _redirectToWindowsEventLog = redirect;
+        }
+
+        /// <summary>
+        /// Changes Windows EventLog type to which write or read from. 
+        /// </summary>
+        /// <param name="windowsEventLogType">specifies type of the EventLog</param>
+        /// <param name="modifyOverflowPolicy">specifies whether to modify overflow policy</param>
+        /// <param name="overflowAction">specifies how to deal with new entries when current log reaches its maximum size. This parameter is considered only if modifyOverflowPolicy is set to true</param>
+        /// <param name="retentionDays">specifies number of days to retain entries in the current log. This parameter is considered only if modifyOverflowPolicy is set to true</param>
+        public static void ChangeWindowsEventLogType(WindowsEventLogType windowsEventLogType, bool modifyOverflowPolicy = false, OverflowAction overflowAction = OverflowAction.OverwriteAsNeeded, int retentionDays = -1)
+        {
+            if(!_redirectToWindowsEventLog)
+                throw ExceptionUtils.CreateException(ExceptionUtils.InvalidOperationExceptionMessageFormat, "_redirectToWindowsEventLog");
+
+            _eventLogType = windowsEventLogType;
+            _eventLog.Log = _eventLogType.ToString();
+
+            if (modifyOverflowPolicy)
+                _eventLog.ModifyOverflowPolicy(overflowAction, retentionDays);
         }
 
         /// <summary>
@@ -178,6 +238,38 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
 
         /// <summary>
+        /// Fetches logger output.
+        /// </summary>
+        /// <param name="onlyCreatedByThisProgram">specifies whether to return entiries created by this program only or all entries from the log they were written to</param>
+        /// <returns>logger content</returns>
+        public static List<EventLogEntry> FetchWindowsEventLogOuput(bool onlyCreatedByThisProgram = true)
+        {
+            if (!_redirectToWindowsEventLog)
+                throw ExceptionUtils.CreateException(ExceptionUtils.InvalidOperationExceptionMessageFormat, "_redirectToWindowsEventLog");
+
+            List<EventLogEntry> list = new List<EventLogEntry>();
+
+            if (onlyCreatedByThisProgram)
+            {
+                foreach (EventLogEntry item in _eventLog.Entries)
+                {
+                    if(item.TimeWritten >= _startDate)
+                        list.Add(item);
+                }
+            }
+            else
+            {
+                foreach (EventLogEntry item in _eventLog.Entries)
+                {
+                    list.Add(item);
+                }
+            }
+
+            return list;
+        }
+
+
+        /// <summary>
         /// Clears logger content, so that it can be reused.
         /// </summary>
         public static void ClearInMemoryLogger()
@@ -187,6 +279,36 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                     throw ExceptionUtils.CreateException(ExceptionUtils.InvalidOperationExceptionMessageFormat, "_redirectToInMemoryLogger");
                 _inMemoryLoggerStorage.Clear();
             }
+        }
+
+
+        /// <summary>
+        /// Clears logger content, so that it can be reused.
+        /// <param name="releaseEventLogAcquiredResources">specifies whether to release resources' handles used by this EventLog instance</param>
+        /// </summary>
+        public static void ClearWindowsEventLog(bool releaseEventLogAcquiredResources = false)
+        {
+            {
+                if (!_redirectToWindowsEventLog)
+                    throw ExceptionUtils.CreateException(ExceptionUtils.InvalidOperationExceptionMessageFormat, "_redirectToWindowsEventLog");
+
+                _eventLog.Clear();
+
+                if (releaseEventLogAcquiredResources)
+                    ReleaseWindowsEventLogAcquiredResources();
+            }
+        }
+
+
+        /// <summary>
+        /// Releases resources' handles used by this EventLog instance
+        /// </summary>
+        public static void ReleaseWindowsEventLogAcquiredResources()
+        {
+            if (!_redirectToWindowsEventLog)
+                throw ExceptionUtils.CreateException(ExceptionUtils.InvalidOperationExceptionMessageFormat, "_redirectToWindowsEventLog");
+
+            _eventLog.Close();
         }
 
 
@@ -238,26 +360,11 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
                     LogToTextFileLogger(format, goToNewLine, logOperationType, includeInvocationTime, formatParameters);
                 if(_redirectToDatabaseLogger)
                     LogToDatabaseLogger(format, goToNewLine, logOperationType, includeInvocationTime, formatParameters);
+                if(_redirectToWindowsEventLog)
+                    LogToWindowsEventLog(format, goToNewLine, logOperationType, includeInvocationTime, formatParameters);
             }
             else
                 LogToConsoleOutput(format, goToNewLine, logOperationType, includeInvocationTime, formatParameters);
-        }
-
-        /// <summary>
-        /// Moves logging to the next paragraph.
-        /// Logging options will be applied if system logging is active. Otherwise user custom logging takes place.
-        /// You can activate system logging with ApplySystemLogging(bool apply) method.
-        /// </summary>
-        /// <param name="numberOfLines">number of lines to move cursor downward</param>
-        /// <param name="logOperationType">specifies type of operation</param>
-        /// <param name="includeInvocationTime">specifies whether to include timestamp</param>
-        [Obsolete("This method will be removed in the future releases of this library. Please use ComposeLoggingOutputLayout method instead.")]
-        public static void MoveToTheNextSection(int numberOfLines = 2, LogOperationTypeEnum logOperationType = LogOperationTypeEnum.INFO, bool includeInvocationTime = true)
-        {
-            for (int i = 0; i < numberOfLines; i++)
-            {
-                LogToConsoleOutput(String.Empty, true, logOperationType, includeInvocationTime);
-            }
         }
 
         /// <summary>
@@ -443,6 +550,87 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             ProcessLoop(labelValueItemsToLog, logLength, OperationTypeEnum.LOG, logOperationType, includeInvocationTime);
         }
 
+        /// <summary>
+        /// Logs object to active log storage or storages.
+        /// </summary>
+        /// <typeparam name="T">type of object</typeparam>
+        /// <param name="item">object instance</param>
+        /// <param name="applyUserCustomFormat">specifies whether apply user custom format or system default format</param>
+        /// <param name="goToNewLine">whether to break the line or not</param>
+        /// <param name="format">user custom format</param>
+        /// <param name="logOperationType">specifies type of operation</param>
+        /// <param name="includeInvocationTime">specifies whether to include timestamp</param>
+        /// <param name="formatParameters">values for format parameter</param>
+        public static void LogObjectOnSuccess<T>(T item, bool applyUserCustomFormat, bool goToNewLine, string format = "",
+                                                 LogOperationTypeEnum logOperationType = LogOperationTypeEnum.INFO, bool includeInvocationTime = true, params string[] formatParameters) where T : class, new()
+        {
+            if (applyUserCustomFormat)
+            {
+                LogUtils.Log(format, goToNewLine, logOperationType, includeInvocationTime, formatParameters);
+            }
+            else
+            {
+                Type type = typeof(T);
+                PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty);
+
+                StringBuilder objectLogBuilder = new StringBuilder();
+
+                objectLogBuilder.AppendFormat("Object of type: {0}, properties: ", type.FullName);
+                foreach (PropertyInfo propertyInfo in properties)
+                {
+                    objectLogBuilder.AppendFormat(propertyInfo.Name + " = '{0}', ", propertyInfo.GetValue(item, null));
+                }
+
+                string loggedObjectToString = objectLogBuilder.ToString();
+                loggedObjectToString = loggedObjectToString.Substring(0, loggedObjectToString.Length - 2) + " was logged on successful operation invocation.";
+                
+
+                LogUtils.Log(loggedObjectToString, goToNewLine, logOperationType, includeInvocationTime, String.Empty);
+            }
+        }
+
+
+        /// <summary>
+        /// Logs object to active log storage or storages.
+        /// </summary>
+        /// <typeparam name="T">type of object</typeparam>
+        /// <param name="item">object instance</param>
+        /// <param name="exceptionMessage">exception message</param>
+        /// <param name="applyUserCustomFormat">specifies whether apply user custom format or system default format</param>
+        /// <param name="goToNewLine">whether to break the line or not</param>
+        /// <param name="format">user custom format</param>
+        /// <param name="logOperationType">specifies type of operation</param>
+        /// <param name="includeInvocationTime">specifies whether to include timestamp</param>
+        /// <param name="formatParameters">values for format parameter</param>
+        public static void LogObjectOnFailure<T>(T item, string exceptionMessage, bool applyUserCustomFormat, bool goToNewLine, string format = "",
+                                                 LogOperationTypeEnum logOperationType = LogOperationTypeEnum.INFO, bool includeInvocationTime = true, params string[] formatParameters) where T : class, new()
+        {
+            if (applyUserCustomFormat)
+            {
+                LogUtils.Log(format, goToNewLine, logOperationType, includeInvocationTime, formatParameters);
+            }
+            else
+            {
+                Type type = typeof(T);
+                PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty);
+
+                StringBuilder objectLogBuilder = new StringBuilder();
+
+                objectLogBuilder.AppendFormat("Object of type: {0}, properties: ", type.FullName);
+                foreach (PropertyInfo propertyInfo in properties)
+                {
+                    objectLogBuilder.AppendFormat(propertyInfo.Name + " = '{0}', ", propertyInfo.GetValue(item, null));
+                }
+
+                string loggedObjectToString = objectLogBuilder.ToString();
+                loggedObjectToString = loggedObjectToString.Substring(0, loggedObjectToString.Length - 2) + " was logged on failed operation invocation. Exception message: '" + exceptionMessage + "'.";
+
+
+                LogUtils.Log(loggedObjectToString, goToNewLine, logOperationType, includeInvocationTime, String.Empty);
+            }
+        }
+
+
         private static void LogToInMemoryLogger(string format, bool goToNewLine, LogOperationTypeEnum logOperationType, bool includeInvocationTime, params string[] formatParameters)
         {
             if (_applySystemLogging)
@@ -508,6 +696,32 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
             {
                 string log = TransformToTableRow(String.Empty, String.Format(format, formatParameters));
                 DatabaseUtils.CreateSqlCommand(_databaseConnection, log, CommandType.Text, _commandTimeout).ExecuteNonQuery();
+            }
+        }
+
+        private static void LogToWindowsEventLog(string format, bool goToNewLine, LogOperationTypeEnum logOperationType, bool includeInvocationTime, string[] formatParameters)
+        {
+            EventLogEntryType eventLogEntryType;
+
+            if (logOperationType == LogOperationTypeEnum.INFO)
+                eventLogEntryType = EventLogEntryType.Information;
+            else if (logOperationType == LogOperationTypeEnum.WARNING)
+                eventLogEntryType = EventLogEntryType.Warning;
+            else if (logOperationType == LogOperationTypeEnum.ERROR)
+                eventLogEntryType = EventLogEntryType.Error;
+            else
+                eventLogEntryType = EventLogEntryType.Information;
+
+            if (_applySystemLogging)
+            {
+                string currentMethodStackTrace = GetCurrentInvokedMethodStackTrace(logOperationType, includeInvocationTime, true).Replace("#", ":");
+                string content = currentMethodStackTrace + ":\t" + String.Format(format, formatParameters);
+
+                _eventLog.WriteEntry(content, eventLogEntryType);
+            }
+            else
+            {
+                _eventLog.WriteEntry(String.Format(format, formatParameters), eventLogEntryType);
             }
         }
 
