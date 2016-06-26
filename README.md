@@ -2,7 +2,8 @@
 
 modifications:
 - NEW:
- - [LogUtils]  new custom logger Windows EventLog <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [NEW]</strong>
+ - [LogUtils]  new custom logger: Windows EventLog; new log methods: LogObjectOnSuccess, LogObjectOnFailure
+  <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [NEW]</strong>
  - [WindowsUtils]  impresonation <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [NEW]</strong> 
 
 - OLD:
