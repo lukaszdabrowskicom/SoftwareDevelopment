@@ -1,0 +1,7 @@
+D:\GitHub\PROGRAMMING\SoftwareDevelopment\SoftwareDevelopment.Programming.CSharp.Utilities\bin\Debug\SoftwareDevelopment.Programming.CSharp.Utilities.XML
+D:\GitHub\PROGRAMMING\SoftwareDevelopment\SoftwareDevelopment.Programming.CSharp.Utilities\bin\Debug\SoftwareDevelopment.Programming.CSharp.Utilities.dll
+D:\GitHub\PROGRAMMING\SoftwareDevelopment\SoftwareDevelopment.Programming.CSharp.Utilities\bin\Debug\SoftwareDevelopment.Programming.CSharp.Utilities.pdb
+D:\GitHub\PROGRAMMING\SoftwareDevelopment\SoftwareDevelopment.Programming.CSharp.Utilities\bin\Debug\MySql.Data.dll
+D:\GitHub\PROGRAMMING\SoftwareDevelopment\SoftwareDevelopment.Programming.CSharp.Utilities\obj\Debug\SoftwareDevelopment.Programming.CSharp.Utilities.csprojResolveAssemblyReference.cache
+D:\GitHub\PROGRAMMING\SoftwareDevelopment\SoftwareDevelopment.Programming.CSharp.Utilities\obj\Debug\SoftwareDevelopment.Programming.CSharp.Utilities.dll
+D:\GitHub\PROGRAMMING\SoftwareDevelopment\SoftwareDevelopment.Programming.CSharp.Utilities\obj\Debug\SoftwareDevelopment.Programming.CSharp.Utilities.pdb
