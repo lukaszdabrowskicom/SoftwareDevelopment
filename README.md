@@ -1,18 +1,37 @@
 # Dabrowski Software Development [ C# ]
 
-modifications:
 - NEW:
- - [LogUtils]  new custom logger: Windows EventLog; new log methods: LogObjectOnSuccess, LogObjectOnFailure
-  <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00</strong>
- - [WindowsUtils]  impresonation <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00</strong> 
+ - [LogUtils]:
+ - *#new custom logger: Windows EventLog; new log methods: LogObjectOnSuccess, LogObjectOnFailure.*
+ - <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [FEATURE]</strong>
+ - 
+ - [WindowsUtils]:
+  - *#impresonation*
+  - <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [NEW]</strong>
+  - 
 
 - OLD:
- - [ProcessUtils] running process in an asynchronous way. <strong>UPLOADED 2016-06-24 13:23:00 GMT +01:00</strong>
- - [LogUtils] new custom loggers /* ability to log to multiple loggers simultaneously */ UPLOADED
- - [FileAndDirectoryUtils] new method: CreateOrOverrideExistingFile UPLOADED
- - [MiscUtils] new generic methods: TakeFirstCollectionItems, TakeLastCollectionItems, TakeCollectionItems UPLOADED /* returns first-, last-, or range- number of items from a collection */
- - [MiscUtils] AddEmptyItemsToColllection UPLOADED /* adds collection item default value to comply with CSV-like format */
- - [ExcelUtils] new method: LoadDataFromTextFile UPLOADED /* loads data from text CSV-like file into DataTable */
+ - [ProcessUtils]:
+ - *#running process in an asynchronous way.*
+ - <strong>UPLOADED 2016-06-24 13:23:00 GMT +01:00 [BUG FIX]</strong>
+ -
+ - [LogUtils]:
+ - *#new custom loggers: ability to log to multiple loggers simultaneously*
+ - <strong>UPLOADED</strong>
+ -
+ - [FileAndDirectoryUtils]:
+ - *#new method: CreateOrOverrideExistingFile*
+ - <strong>UPLOADED</strong>
+ -
+ - [MiscUtils]:
+ - *#new generic methods: TakeFirstCollectionItems, TakeLastCollectionItems, TakeCollectionItems. return first-, last-, or range- number of items from a collection*
+ - *#AddEmptyItemsToColllection. Adds collection item default value to comply with CSV-like format.*
+ - <strong>UPLOADED</strong>
+ -
+ - [ExcelUtils]:
+ - *new method: LoadDataFromTextFile. Loads data from text CSV-like file into DataTable.*
+ - <strong>UPLOADED</strong>
+ -
 
 #License: [MIT]:
  - [http://www.opensource.org/licenses/mit-license.php]
