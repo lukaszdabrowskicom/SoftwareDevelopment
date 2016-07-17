@@ -14,8 +14,10 @@ modifications:
  - [MiscUtils] AddEmptyItemsToColllection UPLOADED /* adds collection item default value to comply with CSV-like format */
  - [ExcelUtils] new method: LoadDataFromTextFile UPLOADED /* loads data from text CSV-like file into DataTable */
 
+#License: [MIT]:
+ - [http://www.opensource.org/licenses/mit-license.php]
 
-# This is a free C# library consisting of various util classes for common day-to-day tasks.
+#Description: [C# library consisting of various util classes for common day-to-day tasks]:
 
 # This library can be downloaded free of charge and be distributed, further modified and used for commercial gain according to MIT licence, that is shipped with this project.
   
