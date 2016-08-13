@@ -1,6 +1,9 @@
 # Dabrowski Software Development [ C# ]
 
 - NEW:
+  - 
+
+- OLD:
  - [LogUtils]:
  - *#new custom logger: Windows EventLog; new log methods: LogObjectOnSuccess, LogObjectOnFailure.*
  - <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [FEATURE]</strong>
@@ -9,8 +12,6 @@
   - *#impresonation*
   - <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [NEW]</strong>
   - 
-
-- OLD:
  - [ProcessUtils]:
  - *#running process in an asynchronous way.*
  - <strong>UPLOADED 2016-06-24 13:23:00 GMT +01:00 [BUG FIX]</strong>
