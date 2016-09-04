@@ -2,7 +2,7 @@
 
 - NEW:
 - *#impresonation* - added security feature
- - <strong>UPLOADED 2016-09-04 13:10:00 GMT +01:00 [FEATURE]</strong>
+- <strong>UPLOADED 2016-09-04 13:10:00 GMT +01:00 [FEATURE]</strong>
 
 - OLD:
  - [ProcessUtils]:
