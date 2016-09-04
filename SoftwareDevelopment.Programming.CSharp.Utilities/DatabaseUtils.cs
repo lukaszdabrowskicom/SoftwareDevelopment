@@ -542,8 +542,6 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
 
             string selectClause = "SELECT";
             string insertClause = "INSERT";
-            string deleteClause = "DELETE";
-            string updateClause = "UPDATE";
 
             string setClause = "SET";
             string whereClause = "WHERE";

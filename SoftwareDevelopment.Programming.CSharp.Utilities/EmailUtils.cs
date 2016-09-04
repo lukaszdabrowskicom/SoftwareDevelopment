@@ -83,7 +83,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// <param name="old_new_letter_pair_list_FirstName">list of letter pairs of first name</param>
         /// <param name="old_new_letter_pair_LastName">list of letter pairs of last name</param>
         /// <param name="old_new_letter_pair_separator">separator of list pairs</param>
-        /// <param name="old_new_letter_separator">separator of old & new letter</param>
+        /// <param name="old_new_letter_separator">separator of old and new letter</param>
         /// <param name="keepSideBySideDoubleLetters">whether to preserve double letters that are side by side</param>
         /// <param name="applyTranslationToFirstName">specifies whether to apply translation to first name</param>
         /// <param name="applyTranslationToLastName">specifies whether to apply translation to last name</param>

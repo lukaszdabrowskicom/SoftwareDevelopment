@@ -14,7 +14,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
     {
         //this method allows for obtaining user token
         [DllImport("advapi32.dll", SetLastError = true)]
-        private static extern bool LogonUser(string pszUsername, string pszDomain, string pszPassword, int dwLogonType, int dwLogonProvider, ref IntPtr phToken);
+        private static extern bool LogonUser([MarshalAs(UnmanagedType.LPWStr)]string pszUsername, [MarshalAs(UnmanagedType.LPWStr)]string pszDomain, [MarshalAs(UnmanagedType.LPWStr)]string pszPassword, int dwLogonType, int dwLogonProvider, ref IntPtr phToken);
 
         // this method allows for closing open handles returned by LogonUser method
         [DllImport("kernel32.dll", CharSet = CharSet.Auto)]

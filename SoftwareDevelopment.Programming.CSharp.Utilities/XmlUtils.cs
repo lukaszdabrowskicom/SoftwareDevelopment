@@ -41,7 +41,7 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// </summary>
         /// <param name="outputStream">output stream to serialize object to</param>
         /// <param name="nodeList">object instance list to serialize</param>
-        /// returns>object instance list serialized as string</returns>
+        /// <returns>object instance list serialized as string</returns>
         public static void Serialize(Stream outputStream, List<T> nodeList)
         {
             _serializer = new XmlSerializer(typeof(List<T>));
@@ -52,8 +52,9 @@ namespace SoftwareDevelopment.Programming.CSharp.Utilities
         /// <summary>
         /// Deserializes stream to object instance list.
         /// </summary>
-        /// <param name="outputStream">input stream to deserialize object from</param>
-        /// returns>object instance</returns>
+        /// <param name="inputStream">input stream to deserialize object from</param>
+        /// <param name="isCollection">specifies whether input stream contains collection</param>
+        /// <returns>object instance</returns>
         public static object Deserialize(Stream inputStream, bool isCollection)
         {
             if (!isCollection)
