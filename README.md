@@ -5,7 +5,7 @@
 
 - OLD:
  - [LogUtils]:
- - *#new custom logger: Windows EventLog; new log methods: LogObjectOnSuccess, LogObjectOnFailure.*
+ - *#impresonation* - added security feature
  - <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [FEATURE]</strong>
  - 
  - [WindowsUtils]:
