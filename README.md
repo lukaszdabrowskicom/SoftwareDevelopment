@@ -1,17 +1,10 @@
 # Dabrowski Software Development [ C# ]
 
 - NEW:
-  - 
+- *#impresonation* - added security feature
+ - <strong>UPLOADED 2016-09-04 13:10:00 GMT +01:00 [FEATURE]</strong>
 
 - OLD:
- - [LogUtils]:
- - *#impresonation* - added security feature
- - <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [FEATURE]</strong>
- - 
- - [WindowsUtils]:
-  - *#impresonation*
-  - <strong>UPLOADED 2016-06-26 13:20:00 GMT +01:00 [NEW]</strong>
-  - 
  - [ProcessUtils]:
  - *#running process in an asynchronous way.*
  - <strong>UPLOADED 2016-06-24 13:23:00 GMT +01:00 [BUG FIX]</strong>
